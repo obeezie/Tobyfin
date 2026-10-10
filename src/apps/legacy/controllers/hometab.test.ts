@@ -106,6 +106,24 @@ describe('home tab returning from a details page', () => {
         expect((secondView.querySelector('.emby-scroller') as HTMLElement).scrollLeft).toBe(640);
     });
 
+    it('keeps restoring Home across repeated trips to details pages', async () => {
+        const genreRow = await visitThenLeave();
+
+        // Back to Home, then open another movie and come back again.
+        const secondView = mountHome();
+        const second = new HomeTab(secondView, null);
+        await second.onResume({ refresh: true });
+        secondView.remove();
+        second.onPause();
+        second.park();
+
+        const thirdView = mountHome();
+        await new HomeTab(thirdView, null).onResume({ refresh: true });
+
+        expect(loadSections).toHaveBeenCalledTimes(1);
+        expect(thirdView.querySelector('.genre')).toBe(genreRow);
+    });
+
     it('reloads when a different account returns to home', async () => {
         await visitThenLeave();
         layoutKey = 'server-other';

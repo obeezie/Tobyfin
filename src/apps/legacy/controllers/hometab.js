@@ -48,6 +48,9 @@ export function restoreSections(sectionsContainer, signature) {
     sectionsContainer.innerHTML = '';
     sectionsContainer.append(...state.holder.childNodes);
     sectionsContainer.classList.add('homeSectionsContainer');
+    // Only a fully loaded Home is parked, so the restored one is complete too; without this the
+    // next trip to a details page would not park it and Home would rebuild from the top.
+    sectionsContainer.homeSectionsComplete = true;
     for (const { elem, state: saved } of state.containers) {
         Object.assign(elem, saved);
         // Parked rows miss playback/watched events, so rows that track them (Continue Watching,

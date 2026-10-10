@@ -1,0 +1,23 @@
+<div class="subtitleSync">
+    <div class="subtitleSyncContainer hide" role="group" aria-label="Subtitle timing">
+        <div class="subtitleSync-bar">
+            <button type="button" data-subtitle-step="-0.1" aria-label="Subtitles 0.1 seconds earlier">−</button>
+            <output class="subtitleSync-value" aria-live="polite">0 s</output>
+            <button type="button" data-subtitle-step="0.1" aria-label="Subtitles 0.1 seconds later">+</button>
+            <button type="button" class="subtitleSync-more" aria-label="More timing controls" aria-expanded="false">⋯</button>
+            <button type="button" class="subtitleSync-closeButton" aria-label="Close subtitle timing">×</button>
+        </div>
+        <div class="subtitleSync-advanced" hidden>
+            <div class="subtitleSync-buttons">
+                <button type="button" data-subtitle-step="-1">−1 s</button>
+                <button type="button" class="subtitleSync-reset">Reset</button>
+                <button type="button" data-subtitle-step="1">+1 s</button>
+            </div>
+            <div class="subtitleSync-buttons">
+                <input class="subtitleSyncTextField" type="text" inputmode="decimal" spellcheck="false" aria-label="Subtitle delay in seconds, positive means later" />
+                <button type="button" class="subtitleSync-apply">Apply</button>
+            </div>
+            <div class="subtitleSync-help">Positive: later · Negative: earlier</div>
+        </div>
+    </div>
+</div>

@@ -1,0 +1,184 @@
+import { ItemFields } from '@jellyfin/sdk/lib/generated-client/models/item-fields';
+import { ImageType } from '@jellyfin/sdk/lib/generated-client/models/image-type';
+
+import * as userSettings from 'scripts/settings/userSettings';
+import layoutManager from 'components/layoutManager';
+import { EpisodeFilter, FeatureFilters, LibraryViewSettings, VideoBasicFilter } from 'types/library';
+import { LibraryTab } from 'types/libraryTab';
+import type { AttributesOpts, DataAttributes } from 'types/dataAttributes';
+
+export const getVideoBasicFilter = (libraryViewSettings: LibraryViewSettings) => {
+    let isHd;
+
+    if (libraryViewSettings.Filters?.VideoBasicFilter?.includes(VideoBasicFilter.IsHD)) {
+        isHd = true;
+    }
+
+    if (libraryViewSettings.Filters?.VideoBasicFilter?.includes(VideoBasicFilter.IsSD)) {
+        isHd = false;
+    }
+
+    return {
+        isHd,
+        is4K: libraryViewSettings.Filters?.VideoBasicFilter?.includes(VideoBasicFilter.Is4K) ?
+            true :
+            undefined,
+        is3D: libraryViewSettings.Filters?.VideoBasicFilter?.includes(VideoBasicFilter.Is3D) ?
+            true :
+            undefined
+    };
+};
+
+export const getFeatureFilters = (libraryViewSettings: LibraryViewSettings) => {
+    return {
+        hasSubtitles: libraryViewSettings.Filters?.Features?.includes(FeatureFilters.HasSubtitles) ?
+            true :
+            undefined,
+        hasTrailer: libraryViewSettings.Filters?.Features?.includes(FeatureFilters.HasTrailer) ?
+            true :
+            undefined,
+        hasSpecialFeature: libraryViewSettings.Filters?.Features?.includes(
+            FeatureFilters.HasSpecialFeature
+        ) ?
+            true :
+            undefined,
+        hasThemeSong: libraryViewSettings.Filters?.Features?.includes(FeatureFilters.HasThemeSong) ?
+            true :
+            undefined,
+        hasThemeVideo: libraryViewSettings.Filters?.Features?.includes(
+            FeatureFilters.HasThemeVideo
+        ) ?
+            true :
+            undefined
+    };
+};
+
+export const getEpisodeFilter = (
+    viewType: LibraryTab,
+    libraryViewSettings: LibraryViewSettings
+) => {
+    const episodeFilters = libraryViewSettings.Filters?.EpisodeFilter;
+    const isMissingSelected = episodeFilters?.includes(EpisodeFilter.IsMissing);
+    const isUnairedSelected = episodeFilters?.includes(EpisodeFilter.IsUnaired);
+
+    let isMissing: boolean | undefined;
+    let isUnaired: boolean | undefined;
+
+    if (viewType === LibraryTab.Episodes) {
+        if (isMissingSelected) {
+            isMissing = true;
+            if (!isUnairedSelected) {
+                isUnaired = false;
+            }
+        } else if (isUnairedSelected) {
+            isUnaired = true;
+        } else {
+            isMissing = false;
+        }
+    }
+
+    return {
+        parentIndexNumber: episodeFilters?.includes(EpisodeFilter.ParentIndexNumber) ?
+            0 :
+            undefined,
+        isMissing,
+        isUnaired
+    };
+};
+
+const getItemFieldsEnum = (
+    viewType: LibraryTab,
+    libraryViewSettings: LibraryViewSettings
+) => {
+    const itemFields: ItemFields[] = [];
+
+    if (viewType !== LibraryTab.Studios) {
+        itemFields.push(ItemFields.MediaSourceCount);
+    }
+
+    if (libraryViewSettings.ImageType === ImageType.Primary) {
+        itemFields.push(ItemFields.PrimaryImageAspectRatio);
+    }
+
+    if (viewType === LibraryTab.Studios) {
+        itemFields.push(
+            ItemFields.DateCreated,
+            ItemFields.PrimaryImageAspectRatio
+        );
+    }
+
+    return itemFields;
+};
+
+export const getFieldsQuery = (
+    viewType: LibraryTab,
+    libraryViewSettings: LibraryViewSettings
+) => {
+    return {
+        fields: getItemFieldsEnum(viewType, libraryViewSettings)
+    };
+};
+
+export const getLimitQuery = () => {
+    return {
+        limit: userSettings.libraryPageSize(undefined) || undefined
+    };
+};
+
+export const getAlphaPickerQuery = (libraryViewSettings: LibraryViewSettings) => {
+    const alphabetValue = libraryViewSettings.Alphabet !== null ?
+        libraryViewSettings.Alphabet : undefined;
+
+    return {
+        nameLessThan: alphabetValue === '#' ? 'A' : undefined,
+        nameStartsWith: alphabetValue === '#' ? undefined : alphabetValue
+    };
+};
+
+export const getFiltersQuery = (
+    viewType: LibraryTab,
+    libraryViewSettings: LibraryViewSettings
+) => {
+    return {
+        ...getFeatureFilters(libraryViewSettings),
+        ...getEpisodeFilter(viewType, libraryViewSettings),
+        ...getVideoBasicFilter(libraryViewSettings),
+        seriesStatus: libraryViewSettings?.Filters?.SeriesStatus,
+        videoTypes: libraryViewSettings?.Filters?.VideoTypes,
+        filters: libraryViewSettings?.Filters?.Status,
+        genres: libraryViewSettings?.Filters?.Genres,
+        officialRatings: libraryViewSettings?.Filters?.OfficialRatings,
+        tags: libraryViewSettings?.Filters?.Tags,
+        years: libraryViewSettings?.Filters?.Years,
+        studioIds: libraryViewSettings?.Filters?.StudioIds,
+        audioLanguages: libraryViewSettings?.Filters?.AudioLanguages,
+        subtitleLanguages: libraryViewSettings?.Filters?.SubtitleLanguages
+    };
+};
+
+export function getDataAttributes(
+    opts: AttributesOpts
+): DataAttributes {
+    return {
+        'data-context': opts.context,
+        'data-collectionid': opts.collectionId,
+        'data-playlistid': opts.playlistId,
+        'data-parentid': opts.parentId,
+        'data-playlistitemid': opts.itemPlaylistItemId,
+        'data-action': layoutManager.tv ? opts.action : null,
+        'data-serverid': opts.itemServerId,
+        'data-id': opts.itemId,
+        'data-timerid': opts.itemTimerId,
+        'data-seriestimerid': opts.itemSeriesTimerId,
+        'data-channelid': opts.itemChannelId,
+        'data-type': opts.itemType,
+        'data-mediatype': opts.itemMediaType,
+        'data-collectiontype': opts.itemCollectionType,
+        'data-isfolder': opts.itemIsFolder,
+        'data-path': opts.itemPath,
+        'data-prefix': opts.prefix,
+        'data-positionticks': opts.itemUserData?.PlaybackPositionTicks,
+        'data-startdate': opts.itemStartDate?.toString(),
+        'data-enddate': opts.itemEndDate?.toString()
+    };
+}

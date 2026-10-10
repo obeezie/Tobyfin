@@ -1,0 +1,49 @@
+.discoveryEditor {
+    background: #181c20;
+    color: #fff;
+    border: 1px solid #56616b;
+    border-radius: 12px;
+    width: min(560px, calc(100vw - 40px));
+    max-height: calc(100dvh - 48px);
+    padding: 0;
+    box-sizing: border-box;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+}
+.discoveryEditor::backdrop { background: rgba(0, 0, 0, 0.65); }
+.discoveryEditor p { color: #bac4cd; }
+.discoveryEditor button, .discoveryEditor select {
+    min-height: 44px;
+    min-width: 44px;
+    background: #303942;
+    color: #fff;
+    border: 1px solid #77838d;
+    border-radius: 5px;
+    padding: 8px;
+}
+.discoveryEditor button:disabled { opacity: 0.3; }
+.discoveryEditor button:focus-visible { outline: 2px solid #00a4dc; }
+.discoveryOrderRow { display: flex; align-items: center; gap: 6px; margin: 8px 0; }
+.discoveryOrderRow label { flex: 1; display: flex; align-items: center; min-height: 44px; }
+.discoveryOrderRow input { width: 20px; height: 20px; margin-right: 10px; }
+.discoveryActions { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 16px; }
+.discoveryError { color: #ff9d9d !important; }
+[data-discovery-size="small"] { --discovery-poster-width: 100px; --discovery-wide-width: 178px; }
+[data-discovery-size="medium"] { --discovery-poster-width: 140px; --discovery-wide-width: 249px; }
+[data-discovery-size="large"] { --discovery-poster-width: 180px; --discovery-wide-width: 320px; }
+[data-discovery-size] .portraitCard, [data-discovery-size] .overflowPortraitCard { width: var(--discovery-poster-width) !important; }
+[data-discovery-size] .backdropCard, [data-discovery-size] .overflowBackdropCard { width: var(--discovery-wide-width) !important; }
+
+.discoveryBody { overflow-y: auto; min-height: 0; padding: 20px; }
+.discoveryFooter {
+    flex-shrink: 0;
+    background: #181c20;
+    border-top: 1px solid #56616b;
+    padding: 12px 20px max(12px, env(safe-area-inset-bottom));
+}
+.discoveryFooter .discoveryActions { margin: 0; }
+.discoveryFooter .discoveryError:empty { display: none; }
+.discoveryActions [data-action="save"] { background: #007ba6; margin-left: auto; min-width: 80px; }
+.discoverySearch { display: block; width: 100%; box-sizing: border-box; min-height: 44px; margin: 8px 0; padding: 10px; background: #101419; color: white; border: 1px solid #77838d; border-radius: 5px; font: inherit; }
+.discoveryCatalog { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 12px; }

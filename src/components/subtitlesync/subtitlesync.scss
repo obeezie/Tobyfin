@@ -1,0 +1,73 @@
+.subtitleSync {
+    position: fixed;
+    top: max(12px, env(safe-area-inset-top));
+    left: 0;
+    width: 100%;
+    pointer-events: none;
+    z-index: 1000;
+}
+.subtitleSyncContainer {
+    box-sizing: border-box;
+    width: 282px;
+    max-width: calc(100vw - 16px);
+    margin: 0 auto;
+    padding: 5px;
+    background: rgba(16, 27, 23, 0.92);
+    border-radius: 10px;
+    color: #fff;
+    pointer-events: auto;
+}
+.subtitleSync-bar, .subtitleSync-buttons {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+}
+.subtitleSyncContainer button {
+    box-sizing: border-box;
+    flex: 0 0 44px;
+    height: 44px;
+    border: 1px solid transparent;
+    border-radius: 5px;
+    background: #253b33;
+    color: #fff;
+    font-size: 20px;
+    cursor: pointer;
+}
+.subtitleSyncContainer button:focus-visible {
+    outline: 2px solid #d4f59a;
+    background: #476958;
+}
+.subtitleSync-value {
+    flex: 1 1 auto;
+    min-width: 0;
+    text-align: center;
+    font-size: 16px;
+    white-space: nowrap;
+}
+.subtitleSync-buttons {
+    margin-top: 6px;
+}
+.subtitleSync-buttons button {
+    flex: 1 0 44px;
+    font-size: 14px;
+}
+.subtitleSyncTextField {
+    box-sizing: border-box;
+    min-width: 0;
+    width: 65%;
+    height: 44px;
+    background: #253b33;
+    border: 1px solid #849c90;
+    border-radius: 5px;
+    color: #fff;
+    font-size: 16px;
+    padding: 4px 8px;
+}
+.subtitleSyncTextField[aria-invalid="true"] {
+    outline: 2px solid #e66;
+}
+.subtitleSync-help {
+    padding: 6px 0 2px;
+    text-align: center;
+    font-size: 11px;
+}

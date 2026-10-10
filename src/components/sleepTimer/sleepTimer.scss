@@ -1,0 +1,58 @@
+.sleepTimerBackdrop { background: transparent; }
+
+.sleepTimerDialog {
+    align-self: flex-start;
+    box-sizing: border-box;
+    width: min(420px, calc(100vw - 32px));
+    max-height: calc(100vh - 32px);
+    margin: 16px;
+    margin-inline-start: auto;
+    padding: 16px;
+    border-radius: 16px;
+    background: rgba(25, 25, 25, 0.94);
+    color: #fff;
+    overflow-y: auto;
+
+    h2 {
+        margin: 0;
+        font-size: 1.3em;
+    }
+
+    p { margin: 8px 0; }
+
+    button,
+    input {
+        box-sizing: border-box;
+        min-height: 44px;
+        border: 1px solid #777;
+        border-radius: 6px;
+        background: #333;
+        color: #fff;
+        padding: 8px;
+    }
+
+    button { cursor: pointer; }
+
+    form,
+    .sleepTimerPresets,
+    .sleepTimerActions {
+        display: flex;
+        gap: 6px;
+        margin-block: 8px;
+    }
+
+    label { flex: 1; }
+
+    input {
+        display: block;
+        width: 100%;
+    }
+
+    button:focus-visible,
+    input:focus-visible { outline: 3px solid #00b7ef; }
+
+    .sleepTimerPresets button,
+    .sleepTimerActions button { flex: 1; }
+
+    .sleepTimerEnd { width: 100%; }
+}

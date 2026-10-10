@@ -1,0 +1,72 @@
+/**
+ * Gets the url search string.
+ * This function should be used instead of location.search alone, because the app router
+ * includes search parameters in the hash portion of the url.
+ * @returns The url search string.
+ */
+export const getLocationSearch = () => {
+    // Check location.hash for a search string (this should be the case for our routing library)
+    let index = window.location.hash.indexOf('?');
+    if (index !== -1) {
+        return window.location.hash.substring(index);
+    }
+
+    // Return location.search if it exists
+    if (window.location.search) {
+        return window.location.search;
+    }
+
+    // Fallback to checking the entire url
+    index = window.location.href.indexOf('?');
+    if (index !== -1) {
+        return window.location.href.substring(index);
+    }
+
+    return '';
+};
+
+/**
+ * Gets the value of a url search parameter by name.
+ * @param name The parameter name.
+ * @param url The url to search (optional).
+ * @returns The parameter value.
+ */
+export const getParameterByName = (name: string, url?: string | null | undefined) => {
+    if (!url) {
+        url = getLocationSearch();
+    }
+
+    return new URLSearchParams(url).get(name) || '';
+};
+
+/**
+ * Safely decodes a URI component, returning the original value if decoding fails.
+ * This is useful for handling cases where the value may or may not be encoded.
+ * @param value The value to decode.
+ * @returns The decoded value.
+ */
+export const safeDecodeURIComponent = (value: string) => {
+    try {
+        return decodeURIComponent(value);
+    } catch {
+        // If decoding fails, return the original value, this can happen for values that are not encoded.
+        return value;
+    }
+};
+
+/**
+ * Test if a string is a valid http or https URL.
+ * @param value The value to test.
+ * @returns Whether the value is a URL or not.
+ */
+export const isValidUrl = (value: string) => {
+    let url;
+
+    try {
+        url = new URL(value);
+    } catch {
+        return false;
+    }
+
+    return url.protocol === 'http:' || url.protocol === 'https:';
+};

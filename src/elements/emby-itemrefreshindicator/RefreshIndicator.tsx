@@ -1,0 +1,84 @@
+import React, { type FC, useCallback, useEffect, useState } from 'react';
+import classNames from 'classnames';
+
+import CircularProgress, {
+    CircularProgressProps
+} from '@mui/material/CircularProgress';
+import Typography from '@mui/material/Typography';
+import Box from '@mui/material/Box';
+import { toPercentString } from 'utils/number';
+import { getCurrentDateTimeLocale } from 'lib/globalize';
+import type { ItemDto } from 'types/base/models/item-dto';
+import { useApi } from 'hooks/useApi';
+import { OutboundWebSocketMessageType } from '@jellyfin/sdk/lib/websocket';
+import type { RefreshProgressMessage } from '@jellyfin/sdk/lib/generated-client/models/refresh-progress-message';
+
+function CircularProgressWithLabel(
+    props: CircularProgressProps & { value: number }
+) {
+    return (
+        <Box sx={{ position: 'relative', display: 'inline-flex' }}>
+            <CircularProgress variant='determinate' {...props} />
+            <Box
+                sx={{
+                    top: 0,
+                    left: 0,
+                    bottom: 0,
+                    right: 0,
+                    position: 'absolute',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center'
+                }}
+            >
+                <Typography
+                    variant='caption'
+                    component='div'
+                    color='text.secondary'
+                >
+                    {toPercentString(props.value / 100, getCurrentDateTimeLocale())}
+                </Typography>
+            </Box>
+        </Box>
+    );
+}
+
+interface RefreshIndicatorProps {
+    item: ItemDto;
+    className?: string;
+}
+
+const RefreshIndicator: FC<RefreshIndicatorProps> = ({ item, className }) => {
+    const { api } = useApi();
+
+    const [showProgressBar, setShowProgressBar] = useState(!!item.RefreshProgress);
+    const [progress, setProgress] = useState(item.RefreshProgress || 0);
+
+    const onRefreshProgress = useCallback(({ Data }: RefreshProgressMessage) => {
+        if (Data?.ItemId === item?.Id) {
+            const pct = Number.parseFloat(Data?.Progress ?? '0');
+
+            if (pct && pct < 100) {
+                setShowProgressBar(true);
+            } else {
+                setShowProgressBar(false);
+            }
+
+            setProgress(pct);
+        }
+    }, [item?.Id, setShowProgressBar, setProgress]);
+
+    useEffect(() => {
+        return api?.subscribe([OutboundWebSocketMessageType.RefreshProgress], onRefreshProgress);
+    }, [api, onRefreshProgress]);
+
+    const progressringClass = classNames('progressring', className);
+
+    return showProgressBar ? (
+        <div className={progressringClass}>
+            <CircularProgressWithLabel value={Math.floor(progress)} />
+        </div>
+    ) : null;
+};
+
+export default RefreshIndicator;

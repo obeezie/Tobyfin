@@ -1,0 +1,139 @@
+@use "../_base/palette" as palette;
+
+/* Background color for headers, footers, and detail ribbon */
+$header-background: #bcbcbc;
+
+/* Gradient used across headers, footers, and detail ribbon */
+$header-gradient: linear-gradient(to right, #bcbcbc, #a7b4b7, #beb5a5, #adbec2, #b9c7cb);
+
+/* Import the base theme with overrides */
+@use "../_base/theme" with (
+    // Theme options
+    $dark: false,
+
+    // Color palette
+    $background-default: #d5e9f2,
+    $background-paper: #eaeaea,
+    $text-primary: rgba(0, 0, 0, 0.87),
+    $text-secondary: rgba(0, 0, 0, 0.87),
+    $action-focus: rgba(0, 0, 0, 0.2),
+    $action-hover: rgba(0, 0, 0, 0.1),
+    $divider: rgba(0, 0, 0, 0.158),
+    // Components
+    $appBar-defaultBg: $header-background,
+    $appBar-gradient: $header-gradient,
+    $appBar-transparentBg: rgba(213, 233, 242, 0.86),
+    $filledInput-bg: rgba(255, 255, 255, 0.9),
+    $filledInput-borderColor: rgba(0, 0, 0, 0.158),
+    $alert-infoFilledBg: #fff3a5,
+    $alert-infoFilledColor: #000,
+    $button-inheritContainedBg: rgba(0, 0, 0, 0.14),
+    $button-inheritContainedHoverBg: rgba(0, 0, 0, 0.24),
+    $snackbarContent-bg: #303030,
+    $snackbarContent-color: rgba(255, 255, 255, 0.87),
+    // Card border radius
+    $card-borderRadius: 0.5rem
+);
+
+/* Override alpha picker selected colors */
+.alphaPickerButton-selected {
+    background-color: var(--jf-palette-primary-main, palette.$primary-main);
+    color: var(--jf-palette-primary-contrastText, palette.$primary-contrastText);
+}
+
+/* Card background color variants */
+.defaultCardBackground1 {
+    background-color: #009688;
+}
+
+.defaultCardBackground2 {
+    background-color: #d32f2f;
+}
+
+.defaultCardBackground3 {
+    background-color: #0288d1;
+}
+
+.defaultCardBackground4 {
+    background-color: #388e3c;
+}
+
+.defaultCardBackground5 {
+    background-color: #f57f17;
+}
+
+/* Gradient footer, form dialog header/footer, and ribbon — skinHeader and detailRibbon handled by base */
+.formDialogHeader:not(.formDialogHeader-clear),
+.formDialogFooter:not(.formDialogFooter-clear),
+.appfooter,
+.playlistSectionButton {
+    color: rgba(0, 0, 0, 0.7);
+    background: $header-background;
+    background: $header-gradient;
+}
+
+.layout-tv .formDialogFooter:not(.formDialogFooter-clear) {
+    border: none;
+    color: initial;
+    background: none;
+}
+
+/* Backdrop uses a gradient overlay rather than simple opacity */
+.backgroundContainer.withBackdrop {
+    background: linear-gradient(to bottom, rgba(192, 212, 222, 0.94), rgba(235, 250, 254, 0.94), rgba(227, 220, 212, 0.94), rgba(206, 214, 216, 0.94), rgba(192, 211, 218, 0.94));
+    opacity: 1;
+}
+
+/* Action sheet uses a lighter paper than the default */
+.actionSheet {
+    background: #f0f0f0;
+}
+
+/* Paper list and card boxes use a translucent surface instead of the paper color */
+.paperList,
+.visualCardBox,
+.cardBox:not(.visualCardBox) .cardPadder {
+    background-color: rgba(0, 0, 0, 0.1);
+}
+
+/* Placeholder icon inside a card matches the translucent surface */
+.cardPadder .cardImageIcon {
+    color: rgba(0, 0, 0, 0.1);
+}
+
+/* Main drawer uses white rather than the page background color */
+.mainDrawer {
+    background: #fff;
+}
+
+/* Inner card footer spacing and rounding */
+.innerCardFooter {
+    border-radius: 0.14rem;
+    margin: 0.4rem 0.5rem;
+}
+
+/* Progress bar — rainbow gradient instead of a solid primary color */
+.itemProgressBarForeground {
+    background: linear-gradient(90deg, rgba(0, 210, 201, 1) 0%, rgba(13, 194, 98, 1) 28%, rgba(0, 75, 185, 1) 100%);
+}
+
+/* Thinner progress bar track */
+.itemProgressBar {
+    height: 0.18rem;
+}
+
+/* Shaded rows on the detail table */
+.detailTableBodyRow-shaded:nth-child(even) {
+    background: rgba(0, 0, 0, 0.1);
+}
+
+/* Live TV guide */
+.channelPrograms,
+.guide-channelHeaderCell,
+.programCell {
+    border-color: rgba(0, 0, 0, 0.12);
+}
+
+.programCell-active {
+    background: rgba(0, 0, 0, 0.1) !important;
+}

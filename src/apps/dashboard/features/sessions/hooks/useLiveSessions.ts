@@ -1,0 +1,48 @@
+import type { SessionInfoDto } from '@jellyfin/sdk/lib/generated-client/models/session-info-dto';
+import { useApi } from 'hooks/useApi';
+import { useCallback, useEffect } from 'react';
+import { QUERY_KEY, useSessions } from '../api/useSessions';
+import { queryClient } from 'utils/query/queryClient';
+import filterSessions from '../utils/filterSessions';
+import { OutboundWebSocketMessageType } from '@jellyfin/sdk/lib/websocket';
+
+const QUERY_PARAMS = {
+    activeWithinSeconds: 960
+};
+
+const useLiveSessions = () => {
+    const { api } = useApi();
+
+    const sessionsQuery = useSessions(QUERY_PARAMS);
+
+    const updateSessions = useCallback((sessions: SessionInfoDto[]) => {
+        const newSessions = filterSessions(sessions);
+        const data = queryClient.getQueryData([ QUERY_KEY, QUERY_PARAMS ]) as SessionInfoDto[];
+        if (data) {
+            const currentSessions = [ ...data ];
+
+            for (const session of newSessions) {
+                const sessionIndex = currentSessions.findIndex((value) => value.DeviceId === session.DeviceId);
+                if (sessionIndex == -1) {
+                    currentSessions.push(session);
+                } else {
+                    currentSessions[sessionIndex] = session;
+                }
+            }
+            return currentSessions;
+        } else {
+            return newSessions;
+        }
+    }, []);
+
+    useEffect(() => {
+        // Return function for unsubscribing
+        return api?.subscribe([OutboundWebSocketMessageType.Sessions], ({ Data }) => {
+            queryClient.setQueryData([ QUERY_KEY, QUERY_PARAMS ], updateSessions(Data ?? []));
+        });
+    }, [api, updateSessions]);
+
+    return sessionsQuery;
+};
+
+export default useLiveSessions;

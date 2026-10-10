@@ -1,0 +1,134 @@
+const features = [
+    "castmenuhashchange",
+    "clientsettings",
+    "displaylanguage",
+    "downloadmanagement",
+    "exit",
+    "externallinks",
+    "filedownload",
+    "fileinput",
+    "htmlaudioautoplay",
+    "htmlvideoautoplay",
+    "multiserver",
+    "physicalvolumecontrol",
+    "remotecontrol",
+    "subtitleappearancesettings",
+    "subtitleburnsettings"
+];
+
+const plugins = [
+    'NavigationPlugin',
+    'ExoPlayerPlugin',
+    'ExternalPlayerPlugin',
+    'MediaSegmentsPlugin'
+];
+
+// Add plugin loaders
+for (const plugin of plugins) {
+    window[plugin] = async () => {
+        const pluginDefinition = await import(`/native/${plugin}.js`);
+        return pluginDefinition[plugin];
+    };
+}
+
+const { deviceId, deviceName, appName, appVersion } = JSON.parse(window.NativeInterface.getDeviceInformation());
+const codecCaps = JSON.parse(window.NativeInterface.getCodecCapabilities());
+
+window.NativeShell = {
+    enableFullscreen() {
+        window.NativeInterface.enableFullscreen();
+    },
+
+    disableFullscreen() {
+        window.NativeInterface.disableFullscreen();
+    },
+
+    openUrl(url, target) {
+        window.NativeInterface.openUrl(url);
+    },
+
+    updateMediaSession(mediaInfo) {
+        window.NativeInterface.updateMediaSession(JSON.stringify(mediaInfo));
+    },
+
+    hideMediaSession() {
+        window.NativeInterface.hideMediaSession();
+    },
+
+    updateVolumeLevel(value) {
+        window.NativeInterface.updateVolumeLevel(value);
+    },
+
+    downloadFile(downloadInfo) {
+        window.NativeInterface.downloadFiles(JSON.stringify([downloadInfo]));
+    },
+
+    downloadFiles(downloadInfo) {
+        window.NativeInterface.downloadFiles(JSON.stringify(downloadInfo));
+    },
+
+    openDownloadManager() {
+        window.NativeInterface.openDownloadManager();
+    },
+
+    openClientSettings() {
+        window.NativeInterface.openClientSettings();
+    },
+
+    selectServer() {
+        window.NativeInterface.openServerSelection();
+    },
+
+    getPlugins() {
+        return plugins;
+    },
+
+    async execCast(action, args, callback) {
+        this.castCallbacks = this.castCallbacks || {};
+        this.castCallbacks[action] = callback;
+        window.NativeInterface.execCast(action, JSON.stringify(args));
+    },
+
+    async castCallback(action, keep, err, result) {
+        const callbacks = this.castCallbacks || {};
+        const callback = callbacks[action];
+        callback && callback(err || null, result);
+        if (!keep) {
+            delete callbacks[action];
+        }
+    }
+};
+
+function getDeviceProfile(profileBuilder, item) {
+    return profileBuilder();
+}
+
+window.NativeShell.AppHost = {
+    init() {},
+    getDefaultLayout() {
+        return "mobile";
+    },
+    supports(command) {
+        command = command.toLowerCase();
+        if (command === "chromecast") {
+            return window.NativeInterface.hasChromecast();
+        }
+        return features.includes(command);
+    },
+    getDeviceProfile,
+    deviceName() {
+        return deviceName;
+    },
+    deviceId() {
+        return deviceId;
+    },
+    appName() {
+        return appName;
+    },
+    appVersion() {
+        return appVersion;
+    },
+    exit() {
+        window.NativeInterface.exitApp();
+    }
+};

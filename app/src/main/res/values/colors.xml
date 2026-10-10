@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Brand and base colors -->
+    <color name="jellyfin_primary">#202020</color>
+    <color name="jellyfin_primary_dark">#101010</color>
+    <!-- Secondary -->
+    <color name="jellyfin_accent">#00a4dc</color>
+
+    <!-- Launcher icon background -->
+    <color name="ic_launcher_background">#030F2B</color>
+
+    <!-- Splash logo color for API < 24. API >= 24 will have the default gradient. -->
+    <color name="splash_fill">#fafafa</color>
+
+    <!-- App colors -->
+    <color name="theme_background">#101010</color>
+    <color name="playback_controls_background">#60000000</color>
+    <color name="playback_info_background">#cc000000</color>
+    <color name="playback_timebar_unplayed">#333333</color>
+
+    <!-- Skip Media Segment Button -->
+    <color name="skip_media_segment_background">#202124</color>
+    <color name="skip_media_segment_text">#DDDDDD</color>
+</resources>

@@ -1,0 +1,212 @@
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent">
+
+    <androidx.constraintlayout.widget.ConstraintLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent">
+
+        <androidx.constraintlayout.widget.Guideline
+            android:id="@+id/guide_top"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            app:layout_constraintGuide_begin="180dp"
+            app:layout_constraintStart_toStartOf="parent" />
+
+        <androidx.constraintlayout.widget.Guideline
+            android:id="@+id/guide_left_end"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            app:layout_constraintGuide_begin="150dp" />
+
+        <androidx.constraintlayout.widget.Guideline
+            android:id="@+id/guide_main_start"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            app:layout_constraintGuide_begin="170dp" />
+
+        <androidx.constraintlayout.widget.Guideline
+            android:id="@+id/guide_main_end"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            app:layout_constraintGuide_end="240dp" />
+
+        <androidx.constraintlayout.widget.Guideline
+            android:id="@+id/guide_right_start"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            app:layout_constraintGuide_end="220dp" />
+
+        <androidx.constraintlayout.widget.Guideline
+            android:id="@+id/guide_right_end"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            app:layout_constraintGuide_end="50dp" />
+
+        <!-- Top -->
+        <TextView
+            android:id="@+id/fdTitle"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:ellipsize="end"
+            android:fontFamily="sans-serif-light"
+            android:maxLines="2"
+            android:textSize="30sp"
+            app:layout_constraintBottom_toTopOf="@id/fdMainInfoRow"
+            app:layout_constraintEnd_toEndOf="@id/guide_right_end"
+            app:layout_constraintStart_toStartOf="@id/guide_main_start"
+            tools:text="fdTitle" />
+
+        <LinearLayout
+            android:id="@+id/fdMainInfoRow"
+            android:layout_width="0dp"
+            android:layout_height="20sp"
+            android:dividerPadding="4sp"
+            android:orientation="horizontal"
+            app:layout_constraintBottom_toTopOf="@id/fdGenreRow"
+            app:layout_constraintEnd_toEndOf="@id/guide_right_end"
+            app:layout_constraintStart_toStartOf="@id/guide_main_start" />
+
+        <TextView
+            android:id="@+id/fdGenreRow"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            app:layout_constraintBottom_toTopOf="@id/guide_top"
+            app:layout_constraintEnd_toEndOf="@id/guide_right_end"
+            app:layout_constraintStart_toStartOf="@id/guide_main_start"
+            tools:text="fdGenreRow" />
+
+        <!-- Left -->
+
+        <TextView
+            android:id="@+id/infoTitle1"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:textAlignment="viewEnd"
+            android:textAllCaps="true"
+            android:textSize="14sp"
+            app:layout_constraintEnd_toEndOf="@id/guide_left_end"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="@id/guide_top"
+            tools:text="infoTitle1" />
+
+        <TextView
+            android:id="@+id/infoValue1"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:alpha=".6"
+            android:textAlignment="viewEnd"
+            android:textSize="14sp"
+            app:layout_constraintEnd_toStartOf="@id/guide_left_end"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@id/infoTitle1"
+            tools:text="infoValue1" />
+
+        <TextView
+            android:id="@+id/infoTitle2"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="20dp"
+            android:textAlignment="viewEnd"
+            android:textAllCaps="true"
+            android:textSize="14sp"
+            app:layout_constraintEnd_toStartOf="@id/guide_left_end"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@id/infoValue1"
+            tools:text="infoTitle2" />
+
+        <TextView
+            android:id="@+id/infoValue2"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:alpha=".6"
+            android:textAlignment="viewEnd"
+            android:textSize="14sp"
+            app:layout_constraintEnd_toStartOf="@id/guide_left_end"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@id/infoTitle2"
+            tools:text="infoValue2" />
+
+        <TextView
+            android:id="@+id/infoTitle3"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="20dp"
+            android:textAlignment="viewEnd"
+            android:textAllCaps="true"
+            android:textSize="14sp"
+            app:layout_constraintEnd_toStartOf="@id/guide_left_end"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@id/infoValue2"
+            tools:text="infoTitle3" />
+
+        <TextView
+            android:id="@+id/infoValue3"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:alpha=".6"
+            android:textAlignment="viewEnd"
+            android:textSize="14sp"
+            app:layout_constraintEnd_toStartOf="@id/guide_left_end"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@id/infoTitle3"
+            tools:text="infoValue3" />
+
+        <!-- Main -->
+
+        <org.jellyfin.androidtv.ui.ExpandableTextView
+            android:id="@+id/fdSummaryText"
+            android:layout_width="0dp"
+            android:layout_height="0dp"
+            android:ellipsize="end"
+            android:fontFamily="sans-serif-light"
+            android:maxLines="6"
+            android:textSize="16sp"
+            app:layout_constraintBottom_toBottomOf="@id/infoValue3"
+            app:layout_constraintEnd_toEndOf="@id/guide_main_end"
+            app:layout_constraintStart_toStartOf="@id/guide_main_start"
+            app:layout_constraintTop_toBottomOf="@id/fdGenreRow"
+            tools:text="fdSummaryText" />
+
+        <LinearLayout
+            android:id="@+id/fdButtonRow"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="10dp"
+            android:divider="@drawable/blank10x10"
+            android:orientation="horizontal"
+            android:showDividers="none"
+            app:layout_constraintEnd_toEndOf="@id/guide_main_end"
+            app:layout_constraintStart_toStartOf="@id/guide_main_start"
+            app:layout_constraintTop_toBottomOf="@id/fdSummaryText" />
+
+        <!-- Right -->
+
+        <FrameLayout
+            android:layout_width="0dp"
+            android:layout_height="0dp"
+            app:layout_constraintBottom_toBottomOf="@id/fdButtonRow"
+            app:layout_constraintEnd_toEndOf="@id/guide_right_end"
+            app:layout_constraintStart_toStartOf="@id/guide_right_start"
+            app:layout_constraintTop_toTopOf="@id/guide_top"
+            app:layout_constraintVertical_bias="0">
+
+            <org.jellyfin.androidtv.ui.AsyncImageView
+                android:id="@+id/mainImage"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:adjustViewBounds="true"
+                android:background="@drawable/shape_card"
+                android:scaleType="centerInside"
+                tools:srcCompat="@drawable/app_banner" />
+        </FrameLayout>
+    </androidx.constraintlayout.widget.ConstraintLayout>
+</RelativeLayout>

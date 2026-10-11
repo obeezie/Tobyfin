@@ -1,7 +1,5 @@
 package org.jellyfin.androidtv.ui.startup.fragment
 
-import android.media.AudioAttributes
-import android.media.SoundPool
 import android.os.Bundle
 import android.view.KeyEvent
 import android.view.LayoutInflater
@@ -98,6 +96,7 @@ import org.jellyfin.androidtv.auth.repository.ServerUserRepository
 import org.jellyfin.androidtv.auth.store.AuthenticationPreferences
 import org.jellyfin.androidtv.auth.store.AuthenticationStore
 import org.jellyfin.androidtv.ui.base.JellyfinTheme
+import org.jellyfin.androidtv.ui.base.ProfileColors
 import org.jellyfin.androidtv.ui.base.Text
 import org.jellyfin.androidtv.ui.base.button.Button
 import org.jellyfin.androidtv.ui.startup.StartupViewModel
@@ -130,20 +129,7 @@ class WhosWatchingFragment : Fragment() {
 	private var menuFor by mutableStateOf<Profile?>(null)
 	private var multipleServers by mutableStateOf(false)
 
-	private var sounds: SoundPool? = null
-	private var clickSound = 0
-	private var chimeSound = 0
-
 	override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View {
-		sounds = SoundPool.Builder()
-			.setMaxStreams(2)
-			.setAudioAttributes(AudioAttributes.Builder().setUsage(AudioAttributes.USAGE_ASSISTANCE_SONIFICATION).build())
-			.build()
-			.also { pool ->
-				clickSound = pool.load(requireContext(), R.raw.tobyfin_click_wood, 1)
-				chimeSound = pool.load(requireContext(), R.raw.tobyfin_chime_two_note, 1)
-			}
-
 		return ComposeView(requireContext()).apply {
 			setContent { JellyfinTheme { WhosWatchingScreen() } }
 		}
@@ -153,16 +139,6 @@ class WhosWatchingFragment : Fragment() {
 		super.onResume()
 		opening = null
 		loadProfiles(keepFocus = profiles.isNotEmpty())
-	}
-
-	override fun onDestroyView() {
-		sounds?.release()
-		sounds = null
-		super.onDestroyView()
-	}
-
-	private fun play(sound: Int, volume: Float) {
-		sounds?.play(sound, volume, volume, 1, 0, 1f)
 	}
 
 	/** Saved profiles in the order they were added to this TV, across all saved servers. */
@@ -187,16 +163,12 @@ class WhosWatchingFragment : Fragment() {
 
 	private fun move(step: Int) {
 		val next = (focus + step).coerceIn(0, profiles.size)
-		if (next != focus) {
-			focus = next
-			play(clickSound, 0.5f)
-		}
+		focus = next
 	}
 
 	private fun choose() {
 		if (opening != null) return
 		val profile = profiles.getOrNull(focus) ?: return addProfile()
-		play(chimeSound, 0.6f)
 		opening = focus
 		lifecycleScope.launch {
 			// Let the avatar grow into Home before the next screen takes over.
@@ -506,7 +478,7 @@ class WhosWatchingFragment : Fragment() {
 		)
 	}
 
-	private fun initialColor(name: String) = InitialColors[abs(name.hashCode()) % InitialColors.size]
+	private fun initialColor(name: String) = ProfileColors.forName(name)
 
 	private companion object {
 		const val MOVE_MILLIS = 600
@@ -522,7 +494,6 @@ class WhosWatchingFragment : Fragment() {
 		val Muted = Color(0xFFA2A8C6)
 		val Purple = Color(0xFFB27DFF)
 		val Cyan = Color(0xFF3CC4F5)
-		val InitialColors = listOf(Color(0xFF7B4CE0), Color(0xFF0A8FC4), Color(0xFFD2576F), Color(0xFF2F9E6B), Color(0xFFC98A1A))
 		val Jakarta = FontFamily(
 			Font(R.font.plus_jakarta_sans, FontWeight.Medium, variationSettings = FontVariation.Settings(FontVariation.weight(500))),
 			Font(R.font.plus_jakarta_sans, FontWeight.Bold, variationSettings = FontVariation.Settings(FontVariation.weight(700))),

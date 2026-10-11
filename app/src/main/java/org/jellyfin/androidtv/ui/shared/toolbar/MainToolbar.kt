@@ -29,6 +29,7 @@ import org.jellyfin.androidtv.auth.repository.UserRepository
 import org.jellyfin.androidtv.ui.NowPlayingComposable
 import org.jellyfin.androidtv.ui.base.Icon
 import org.jellyfin.androidtv.ui.base.JellyfinTheme
+import org.jellyfin.androidtv.ui.base.ProfileInitial
 import org.jellyfin.androidtv.ui.base.ProfilePicture
 import org.jellyfin.androidtv.ui.base.ProvideTextStyle
 import org.jellyfin.androidtv.ui.base.Text
@@ -68,6 +69,7 @@ fun MainToolbar(
 
 	MainToolbar(
 		userImage = userImage,
+		userName = currentUser?.name,
 		activeButton = activeButton,
 	)
 }
@@ -75,6 +77,7 @@ fun MainToolbar(
 @Composable
 private fun MainToolbar(
 	userImage: String? = null,
+	userName: String? = null,
 	activeButton: MainToolbarActiveButton,
 ) {
 	val focusRequester = remember { FocusRequester() }
@@ -112,9 +115,13 @@ private fun MainToolbar(
 						}
 					},
 					colors = if (activeButton == MainToolbarActiveButton.User) activeButtonColors else ButtonDefaults.colors(),
-					contentPadding = if (userImageVisible) PaddingValues(3.dp) else IconButtonDefaults.ContentPadding,
+					contentPadding = if (userImageVisible || userName != null) PaddingValues(3.dp) else IconButtonDefaults.ContentPadding,
 				) {
-					ProfilePicture(
+					// Tobyfin: the signed-in person's initial, matching "Who's watching?", until a picture loads.
+					if (!userImageVisible && userName != null) ProfileInitial(
+						name = userName,
+						modifier = Modifier.aspectRatio(1f),
+					) else ProfilePicture(
 						url = userImage,
 						contentDescription = stringResource(R.string.lbl_switch_user),
 						modifier = Modifier

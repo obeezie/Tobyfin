@@ -59,6 +59,7 @@ import androidx.compose.ui.input.key.KeyEventType
 import androidx.compose.ui.input.key.key
 import androidx.compose.ui.input.key.nativeKeyCode
 import androidx.compose.ui.input.key.onKeyEvent
+import androidx.compose.ui.input.key.onPreviewKeyEvent
 import androidx.compose.ui.input.key.type
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.ComposeView
@@ -242,6 +243,15 @@ class WhosWatchingFragment : Fragment() {
 				.background(Night)
 				.focusRequester(focusRequester)
 				.focusable()
+				.onPreviewKeyEvent { event ->
+					// Swallow the rest of the hold that opened the menu. Remotes keep repeating OK while it
+					// is held, and those repeats plus the release would otherwise press the menu's button.
+					val code = event.key.nativeKeyCode
+					val isOk = code == KeyEvent.KEYCODE_DPAD_CENTER || code == KeyEvent.KEYCODE_ENTER || code == KeyEvent.KEYCODE_NUMPAD_ENTER
+					if (!okHeld || menuFor == null || !isOk) return@onPreviewKeyEvent false
+					if (event.type == KeyEventType.KeyUp) okHeld = false
+					true
+				}
 				.onKeyEvent { event ->
 					if (menuFor != null || opened) return@onKeyEvent false
 					val code = event.key.nativeKeyCode
@@ -429,7 +439,7 @@ class WhosWatchingFragment : Fragment() {
 
 	@Composable
 	private fun RemoveMenu(profile: Profile) {
-		val removeFocus = remember { FocusRequester() }
+		val cancelFocus = remember { FocusRequester() }
 		BackHandler { menuFor = null }
 		Box(Modifier.fillMaxSize().background(Color(0xB804060E)), contentAlignment = Alignment.Center) {
 			Column(
@@ -443,15 +453,16 @@ class WhosWatchingFragment : Fragment() {
 			) {
 				Text(profile.displayName, fontFamily = Jakarta, fontWeight = FontWeight.Bold, fontSize = 24.sp, color = Color.White)
 				Text(stringResource(R.string.whos_watching_remove_summary, profile.displayName), fontSize = 15.sp, color = Muted)
-				Button(onClick = { remove(profile) }, modifier = Modifier.fillMaxWidth().focusRequester(removeFocus)) {
+				Button(onClick = { remove(profile) }, modifier = Modifier.fillMaxWidth()) {
 					Text(stringResource(R.string.whos_watching_remove))
 				}
-				Button(onClick = { menuFor = null }, modifier = Modifier.fillMaxWidth()) {
+				Button(onClick = { menuFor = null }, modifier = Modifier.fillMaxWidth().focusRequester(cancelFocus)) {
 					Text(stringResource(R.string.lbl_cancel))
 				}
 			}
 		}
-		LaunchedEffect(Unit) { removeFocus.requestFocus() }
+		// Start on Cancel so removing a profile always takes a deliberate move and press.
+		LaunchedEffect(Unit) { cancelFocus.requestFocus() }
 	}
 
 	@Composable

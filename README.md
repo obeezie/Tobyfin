@@ -12,24 +12,15 @@ Tobyfin is a customized build of the [Jellyfin](https://jellyfin.org) Android ph
 
 The phone app bundles a built copy of `web/` in `android/app/src/main/assets/web`. After changing `web/`, rebuild it and copy `web/dist` there before building the phone app.
 
-## What Tobyfin adds
+## Features
 
-**Both apps**
-- Tobyfin branding: name, dog logo, launcher artwork, and a buffering animation.
-- Genre rows on Home (Action, Comedy, Horror and more), plus **Customize Discovery** to reorder, hide or add rows and choose poster size.
-- Recently Added TV shows each show once, newest episode first.
-- Home loads in screen order without rows jumping, and returns to the same place after you open a movie.
-- Continue Watching opens instantly from a saved copy, then refreshes.
-- A sleep timer, and live subtitle timing adjustments during playback.
-
-**Android TV**
-- A Netflix-style **"Who's watching?"** profile picker on launch and after 30 minutes away.
-- The signed-in person's initial on Home's profile button.
-- Posters scroll behind the Home header.
-- Built as an optimized (non-debuggable, R8) app, so navigation is as smooth as stock Jellyfin.
-
-**Phone**
-- Text fields stay above the on-screen keyboard.
+- Tobyfin branding throughout the apps
+- Genre rows on the home screen
+- Customize Discovery: reorder, hide or add home rows and choose poster size
+- Recently Added TV grouped by show
+- Sleep timer
+- Live subtitle timing adjustment
+- "Who's watching?" profile picker on Android TV
 
 ## Building
 

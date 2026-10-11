@@ -105,6 +105,7 @@ import org.jellyfin.androidtv.util.createBundle
 import org.jellyfin.sdk.model.serializer.toUUIDOrNull
 import org.koin.android.ext.android.inject
 import org.koin.androidx.viewmodel.ext.android.activityViewModel
+import java.util.Locale
 import kotlin.math.abs
 
 /**
@@ -118,7 +119,10 @@ class WhosWatchingFragment : Fragment() {
 	private val authenticationStore: AuthenticationStore by inject()
 	private val authenticationPreferences: AuthenticationPreferences by inject()
 
-	private data class Profile(val server: Server, val user: PrivateUser, val imageUrl: String?)
+	private data class Profile(val server: Server, val user: PrivateUser, val imageUrl: String?) {
+		/** Shown on screen only; sign-in keeps the exact account name. */
+		val displayName get() = user.name.replaceFirstChar { it.titlecase(Locale.getDefault()) }
+	}
 
 	private var profiles by mutableStateOf<List<Profile>>(emptyList())
 	private var focus by mutableIntStateOf(0)
@@ -319,7 +323,7 @@ class WhosWatchingFragment : Fragment() {
 
 			Box(Modifier.fillMaxSize().padding(top = 70.dp), contentAlignment = Alignment.Center) {
 				profiles.forEachIndexed { index, profile ->
-					ProfileCard(index, profile.user.name, profile.server.name.takeIf { multipleServers }) {
+					ProfileCard(index, profile.displayName, profile.server.name.takeIf { multipleServers }) {
 						ProfileAvatar(profile)
 					}
 				}
@@ -465,8 +469,8 @@ class WhosWatchingFragment : Fragment() {
 					.border(BorderStroke(1.dp, Line), RoundedCornerShape(20.dp))
 					.padding(28.dp)
 			) {
-				Text(profile.user.name, fontFamily = Jakarta, fontWeight = FontWeight.Bold, fontSize = 24.sp, color = Color.White)
-				Text(stringResource(R.string.whos_watching_remove_summary, profile.user.name), fontSize = 15.sp, color = Muted)
+				Text(profile.displayName, fontFamily = Jakarta, fontWeight = FontWeight.Bold, fontSize = 24.sp, color = Color.White)
+				Text(stringResource(R.string.whos_watching_remove_summary, profile.displayName), fontSize = 15.sp, color = Muted)
 				Button(onClick = { remove(profile) }, modifier = Modifier.fillMaxWidth().focusRequester(removeFocus)) {
 					Text(stringResource(R.string.whos_watching_remove))
 				}

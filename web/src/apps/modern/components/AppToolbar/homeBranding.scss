@@ -1,0 +1,46 @@
+.MuiToolbar-root.tobyfinHomeToolbar {
+    flex-wrap: nowrap;
+
+    .MuiIconButton-root {
+        width: 36px;
+        height: 36px;
+        padding: 6px;
+    }
+
+    .MuiAvatar-root {
+        width: 24px;
+        height: 24px;
+    }
+}
+
+.tobyfinHomeLogo {
+    display: block;
+    flex-shrink: 0;
+    width: clamp(80px, 25vw, 144px);
+    height: 40px;
+    margin-inline-end: 4px;
+    object-fit: contain;
+}
+
+@media (min-width: 600px) {
+    .MuiToolbar-root.tobyfinHomeToolbar {
+        .MuiIconButton-root {
+            width: 48px;
+            height: 48px;
+            padding: 12px;
+        }
+
+        .MuiAvatar-root {
+            width: 32px;
+            height: 32px;
+        }
+    }
+}
+
+@media (max-width: 359px) {
+    .MuiToolbar-root.tobyfinHomeToolbar .MuiIconButton-root {
+        width: 32px;
+        height: 32px;
+        padding: 4px;
+    }
+}

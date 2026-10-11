@@ -1,0 +1,394 @@
+import { getLibraryApi } from '@jellyfin/sdk/lib/utils/api/library-api';
+
+import { PluginType } from 'constants/pluginType';
+import { ServerConnections } from 'lib/jellyfin-apiclient';
+import browser from 'scripts/browser';
+import screenSaverManager from 'scripts/screensavermanager';
+import TouchHelper from 'scripts/touchHelper';
+
+import loading from '../../components/loading/loading';
+import keyboardnavigation from '../../scripts/keyboardNavigation';
+import dialogHelper from '../../components/dialogHelper/dialogHelper';
+import TableOfContents from './tableOfContents';
+import BookOsd from './BookOsd/BookOsd';
+import { translateHtml } from '../../lib/globalize';
+import * as userSettings from '../../scripts/settings/userSettings';
+import Events from '../../utils/events.ts';
+import { renderComponent } from '../../utils/reactUtils';
+
+import 'material-design-icons-iconfont';
+import '../../elements/emby-button/paper-icon-button-light';
+
+import html from './template.html';
+import './style.scss';
+
+const THEMES = {
+    'dark': { 'body': { 'color': '#d8dadc', 'background': '#000' } },
+    'sepia': { 'body': { 'color': '#d8a262', 'background': '#000' } },
+    'light': { 'body': { 'color': '#000', 'background': '#fff' } }
+};
+const THEME_ORDER = ['dark', 'sepia', 'light'];
+const FONT_SIZES = ['x-small', 'small', 'medium', 'large', 'x-large'];
+
+export class BookPlayer {
+    constructor() {
+        this.name = 'Book Player';
+        this.type = PluginType.MediaPlayer;
+        this.id = 'bookplayer';
+        this.priority = 1;
+        this.THEMES = THEMES;
+        if (!userSettings.theme() || userSettings.theme() === 'dark') {
+            this.theme = 'dark';
+        } else {
+            this.theme = 'light';
+        }
+        this.onDialogClosed = this.onDialogClosed.bind(this);
+        this.openTableOfContents = this.openTableOfContents.bind(this);
+        this.rotateTheme = this.rotateTheme.bind(this);
+        this.setTheme = this.setTheme.bind(this);
+        this.increaseFontSize = this.increaseFontSize.bind(this);
+        this.decreaseFontSize = this.decreaseFontSize.bind(this);
+        this.previous = this.previous.bind(this);
+        this.next = this.next.bind(this);
+        this.onWindowKeyDown = this.onWindowKeyDown.bind(this);
+        this.addSwipeGestures = this.addSwipeGestures.bind(this);
+        this.toggleFullscreen = this.toggleFullscreen.bind(this);
+    }
+
+    play(options) {
+        this.progress = 0;
+        this.cancellationToken = false;
+        this.loaded = false;
+
+        screenSaverManager.block();
+        loading.show();
+        const elem = this.createMediaElement(options);
+        return this.setCurrentSrc(elem, options);
+    }
+
+    stop() {
+        this.unbindEvents();
+        this.unmountBookOsd();
+        screenSaverManager.unblock();
+
+        const stopInfo = {
+            src: this.item
+        };
+
+        Events.trigger(this, 'stopped', [stopInfo]);
+
+        const elem = this.mediaElement;
+        const tocElement = this.tocElement;
+        const rendition = this.rendition;
+
+        if (elem) {
+            dialogHelper.close(elem);
+            this.mediaElement = null;
+        }
+
+        if (tocElement) {
+            tocElement.destroy();
+            this.tocElement = null;
+        }
+
+        if (rendition) {
+            rendition.destroy();
+        }
+
+        // hide loader in case player was not fully loaded yet
+        loading.hide();
+        this.cancellationToken = true;
+    }
+
+    destroy() {
+        // Nothing to do here
+    }
+
+    currentItem() {
+        return this.item;
+    }
+
+    currentTime() {
+        return this.progress * 1000;
+    }
+
+    duration() {
+        return 1000;
+    }
+
+    getBufferedRanges() {
+        return [{
+            start: 0,
+            end: 10000000
+        }];
+    }
+
+    volume() {
+        return 100;
+    }
+
+    isMuted() {
+        return false;
+    }
+
+    paused() {
+        return false;
+    }
+
+    seekable() {
+        return true;
+    }
+
+    onWindowKeyDown(e) {
+        // Skip modified keys
+        if (e.ctrlKey || e.altKey || e.metaKey || e.shiftKey) return;
+
+        const key = keyboardnavigation.getKeyName(e);
+
+        if (!this.loaded) return;
+        switch (key) {
+            case 'KeyL':
+            case 'ArrowRight':
+            case 'Right':
+                e.preventDefault();
+                this.next();
+                break;
+            case 'KeyJ':
+            case 'ArrowLeft':
+            case 'Left':
+                e.preventDefault();
+                this.previous();
+                break;
+            case 'Escape':
+                e.preventDefault();
+                if (this.tocElement) {
+                    // Close table of contents on ESC if it is open
+                    this.tocElement.destroy();
+                } else {
+                    // Otherwise stop the entire book player
+                    this.stop();
+                }
+                break;
+        }
+    }
+
+    addSwipeGestures(element) {
+        this.touchHelper = new TouchHelper(element);
+        Events.on(this.touchHelper, 'swipeleft', () => this.next());
+        Events.on(this.touchHelper, 'swiperight', () => this.previous());
+    }
+
+    onDialogClosed() {
+        this.stop();
+    }
+
+    bindEvents() {
+        this.mediaElement?.addEventListener('close', this.onDialogClosed, { once: true });
+
+        document.addEventListener('keydown', this.onWindowKeyDown);
+        this.rendition?.on('keydown', this.onWindowKeyDown);
+        this.rendition?.on('rendered', (e, i) => this.forwardEvents(i.document));
+
+        if (browser.safari) {
+            this.addSwipeGestures(document.querySelector('#bookPlayerContainer'));
+        } else {
+            this.rendition?.on('rendered', (e, i) => this.addSwipeGestures(i.document.documentElement));
+        }
+    }
+
+    unbindEvents() {
+        document.removeEventListener('keydown', this.onWindowKeyDown);
+        this.rendition?.off('keydown', this.onWindowKeyDown);
+        this.mediaElement?.removeEventListener('close', this.onDialogClosed);
+
+        if (!browser.safari) {
+            this.rendition?.off('rendered', (e, i) => this.addSwipeGestures(i.document.documentElement));
+        }
+
+        this.touchHelper?.destroy();
+    }
+
+    // ensure certain iframe events are forwarded to the document for BookOsd visibility listeners
+    forwardEvents(iframe) {
+        // eslint-disable-next-line compat/compat
+        iframe.addEventListener('pointermove', (event) => document.dispatchEvent(new PointerEvent(event.type, event)));
+        iframe.addEventListener('click', (event) => document.dispatchEvent(new MouseEvent(event.type, event)));
+    }
+
+    openTableOfContents() {
+        if (this.loaded) {
+            this.tocElement = new TableOfContents(this);
+        }
+    }
+
+    setTheme(theme, fontSize) {
+        if (!this.loaded) return;
+
+        this.theme = theme;
+        this.fontSize = fontSize;
+
+        // TODO add styles to other elements when we can reliably determine when to apply them
+        const active = THEMES[theme];
+
+        // force this style on all text only when the user has opted to change the default
+        // many epub files will apply font size to individual elements and thus ignore a value on document body
+        if (fontSize !== undefined) {
+            active['a, p, div, li, span'] = { 'font-size': `${fontSize} !important` };
+        }
+
+        this.rendition.themes.register('default', active);
+        this.rendition.themes.update('default');
+    }
+
+    toggleFullscreen() {
+        const player = document.querySelector('#bookPlayerContainer');
+
+        // needs to be executed with a slight delay to give NativeShell time to process the request
+        setTimeout(() => this.rendition.resize(player.clientWidth, player.clientHeight), 200);
+    }
+
+    rotateTheme() {
+        this.setTheme(THEME_ORDER[(THEME_ORDER.indexOf(this.theme) + 1) % THEME_ORDER.length], this.fontSize);
+    }
+
+    increaseFontSize() {
+        if (this.fontSize === FONT_SIZES[FONT_SIZES.length - 1]) return;
+
+        this.setTheme(this.theme, FONT_SIZES[(FONT_SIZES.indexOf(this.fontSize ?? 'medium') + 1)]);
+    }
+
+    decreaseFontSize() {
+        if (this.fontSize === FONT_SIZES[0]) return;
+
+        this.setTheme(this.theme, FONT_SIZES[(FONT_SIZES.indexOf(this.fontSize ?? 'medium') - 1)]);
+    }
+
+    previous(e) {
+        e?.preventDefault();
+        if (this.rendition) {
+            this.rendition.book.package.metadata.direction === 'rtl' ? this.rendition.next() : this.rendition.prev();
+        }
+    }
+
+    next(e) {
+        e?.preventDefault();
+        if (this.rendition) {
+            this.rendition.book.package.metadata.direction === 'rtl' ? this.rendition.prev() : this.rendition.next();
+        }
+    }
+
+    createMediaElement(options) {
+        let elem = this.mediaElement;
+        if (elem) {
+            return elem;
+        }
+
+        elem = document.getElementById('bookPlayer');
+        if (!elem) {
+            elem = dialogHelper.createDialog({
+                exitAnimationDuration: 400,
+                size: 'fullscreen',
+                autoFocus: false,
+                scrollY: false,
+                exitAnimation: 'fadeout',
+                removeOnClose: true
+            });
+
+            elem.id = 'bookPlayer';
+            elem.innerHTML = translateHtml(html);
+
+            dialogHelper.open(elem);
+        }
+
+        this.mediaElement = elem;
+        this.unmountBookOsd = renderComponent(BookOsd, {
+            item: options.items[0],
+            onExit: this.onDialogClosed,
+            onPrevious: this.previous,
+            onNext: this.next,
+            onOpenTableOfContents: this.openTableOfContents,
+            onRotateTheme: this.rotateTheme,
+            onDecreaseFontSize: this.decreaseFontSize,
+            onIncreaseFontSize: this.increaseFontSize,
+            onToggleFullscreen: this.toggleFullscreen
+        }, elem.querySelector('#bookOsdMount'));
+
+        return elem;
+    }
+
+    setCurrentSrc(elem, options) {
+        const item = options.items[0];
+        this.item = item;
+        this.streamInfo = {
+            started: true,
+            ended: false,
+            item: this.item,
+            mediaSource: {
+                Id: item.Id
+            }
+        };
+
+        return new Promise((resolve, reject) => {
+            import('epubjs').then(({ default: epubjs }) => {
+                const api = ServerConnections.getApi(item.ServerId);
+                if (!api) {
+                    console.error('[BookPlayer] no Api instance available for server', item.ServerId);
+                    return;
+                }
+                const downloadHref = getLibraryApi(api).getDownloadUrl({ itemId: item.Id });
+                const book = epubjs(downloadHref, { openAs: 'epub' });
+
+                const rendition = book.renderTo('bookPlayerContainer', {
+                    width: '100%',
+                    height: '100%',
+                    // TODO: Add option for scrolled-doc
+                    flow: 'paginated'
+                });
+
+                this.currentSrc = () => downloadHref;
+                this.rendition = rendition;
+
+                return rendition.display().then(() => {
+                    const epubElem = document.querySelector('.epub-container');
+                    epubElem.style.opacity = '0';
+
+                    this.bindEvents();
+
+                    return this.rendition.book.locations.generate(1024).then(async () => {
+                        if (this.cancellationToken) reject();
+
+                        const percentageTicks = options.startPositionTicks / 10000000;
+                        if (percentageTicks !== 0.0) {
+                            const resumeLocation = book.locations.cfiFromPercentage(percentageTicks);
+                            await rendition.display(resumeLocation);
+                        }
+
+                        this.loaded = true;
+                        epubElem.style.opacity = '';
+                        rendition.on('relocated', (locations) => {
+                            this.progress = book.locations.percentageFromCfi(locations.start.cfi);
+                            Events.trigger(this, 'pause');
+                        });
+
+                        this.setTheme(this.theme, this.fontSize);
+                        loading.hide();
+                        return resolve();
+                    });
+                }, () => {
+                    console.error('failed to display epub');
+                    return reject();
+                });
+            });
+        });
+    }
+
+    canPlayMediaType(mediaType) {
+        return (mediaType || '').toLowerCase() === 'book';
+    }
+
+    canPlayItem(item) {
+        return item.Path?.endsWith('epub');
+    }
+}
+
+export default BookPlayer;

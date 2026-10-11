@@ -1,0 +1,294 @@
+@use "../_base/palette" as palette;
+
+/* Background color for headers and detail ribbon */
+$header-background: #230c33;
+
+/* Primary teal color for the theme */
+$primary-main: #48c3c8;
+
+/* Accent teal for indicators, progress bar and checked state (brighter than primary) */
+$teal-bright: rgb(12, 232, 214);
+
+/* Secondary pink color for the theme */
+$secondary-main: #ff77f1;
+
+/* Background color for footers */
+$footer-blue: #06256f;
+
+/* Background color for info badges */
+$info-background: #dbe6ff;
+
+/* Transparent backdrop for dialogs and overlays */
+$surface: rgba(0, 0, 0, 0.5);
+
+/* Primary text color */
+$text-primary: #f8f8fe;
+
+/* Gradient used across headers, footers, and detail ribbon */
+$header-gradient: linear-gradient(to right, #000420 0%, $footer-blue 18%, #2b052b 38%, #2b052b 68%, $footer-blue 81%, #000420 100%);
+
+/* Import the base theme with overrides */
+@use "../_base/theme" with (
+    // Theme options
+    $dark: true,
+    $rounded-person-cards: true,
+
+    // Color palette
+    $background-default: $header-background,
+    $background-defaultImage: url(bg.jpg),
+    $background-paper: $header-background,
+    $primary-main: $primary-main,
+    $secondary-main: $secondary-main,
+    $text-primary: $text-primary,
+    $text-secondary: rgba(248, 248, 254, 0.973),
+    $action-focus: rgba(0, 0, 0, 0.3),
+    $action-hover: #12122f,
+    $divider: rgba(255, 255, 255, 0.14),
+    // Components
+    $appBar-defaultBg: $header-background,
+    $appBar-gradient: $header-gradient,
+    $appBar-transparentBg: rgba(0, 0, 0, 0.3),
+    $surface-overlay: $surface,
+    $filledInput-bg: $surface,
+    $filledInput-borderColor: transparent,
+    $card-borderRadius: 0.8em,
+    $alert-infoFilledBg: $info-background,
+    $alert-infoFilledColor: #0e0f2d,
+    $button-inheritContainedBg: $surface,
+    $button-inheritContainedHoverBg: $teal-bright,
+    $snackbarContent-bg: #303030,
+    $snackbarContent-color: rgba(255, 255, 255, 0.87)
+);
+
+/* Adjust background position for portrait orientation */
+@media (orientation: portrait) {
+    .backgroundContainer {
+        background-position: 30% top;
+    }
+}
+
+/* Icon buttons: hover/active icon colour is bright teal, not primary */
+@media (hover: hover) and (pointer: fine) {
+    .paper-icon-button-light:hover:not(:disabled) {
+        color: $teal-bright;
+    }
+}
+
+.paper-icon-button-light:active:not(:disabled) {
+    color: $teal-bright;
+}
+
+/* Rounded progress bars */
+progress,
+progress::-webkit-progress-bar,
+progress::-moz-progress-bar,
+progress::-webkit-progress-value {
+    border-radius: 0.4em;
+}
+
+/* Item titles and section headings */
+.itemName,
+.textareaLabel,
+.sectionTitle {
+    color: #f1f7ee;
+}
+
+/* Subdued secondary text — more transparent than $text-secondary */
+.cardText-secondary,
+.fieldDescription,
+.guide-programNameCaret,
+.listItem .secondary,
+.nowPlayingBarSecondaryText,
+.programSecondaryTitle,
+.secondaryText {
+    color: rgba(255, 255, 255, 0.5);
+}
+
+/* Form labels use a blue-white rather than $text-secondary */
+.selectLabel,
+.checkboxLabel,
+.checkboxListLabel,
+.inputLabel,
+.inputLabelUnfocused,
+.paperListLabel,
+.textareaLabelUnfocused {
+    color: rgb(191, 219, 247);
+}
+
+/* Form dialog header/footer and collapsible also get border-radius */
+.collapseContent,
+.formDialogFooter:not(.formDialogFooter-clear),
+.formDialogHeader:not(.formDialogHeader-clear) {
+    border-radius: 0.8em;
+}
+
+.layout-tv .formDialogFooter:not(.formDialogFooter-clear) {
+    border-radius: 0;
+}
+
+/* Default card background colours */
+.defaultCardBackground1 {
+    background-color: #9c20ab;
+}
+
+.defaultCardBackground2 {
+    background-color: #d799de;
+}
+
+.defaultCardBackground3 {
+    background-color: #412378;
+}
+
+.defaultCardBackground4 {
+    background-color: #857b48;
+}
+
+.defaultCardBackground5 {
+    background-color: #ab8820;
+}
+
+/* Alpha picker */
+.alphaPickerButton {
+    color: rgba(255, 255, 255, 0.5);
+
+    &-selected {
+        color: $teal-bright;
+    }
+}
+
+/* Footer uses a deep-blue accent instead of $background-paper */
+.appfooter,
+.playlistSectionButton {
+    background: $footer-blue;
+    color: rgba(255, 255, 255, 0.78);
+}
+
+@supports (backdrop-filter: blur(10px)) or (-webkit-backdrop-filter: blur(10px)) {
+    .appfooter {
+        background: rgba(6, 37, 111, 0.7);
+        backdrop-filter: blur(20px);
+    }
+}
+
+.detailTableBodyRow-shaded:nth-child(even) {
+    background: rgba(30, 30, 30, 0.9);
+}
+
+.actionSheetMenuItem:hover {
+    background-color: $surface;
+}
+
+/* Translucent drawer surfaces */
+.mainDrawer {
+    background: $surface;
+}
+
+.drawer-open {
+    background-color: #030322;
+}
+
+/* Selected nav item uses a custom purple */
+.navMenuOption-selected {
+    background: #6f0765 !important;
+    color: $text-primary;
+}
+
+/* Emby button focus uses a distinct light teal (different from primary or secondary) */
+.emby-button.show-focus:focus {
+    background: #8ae9c1;
+    color: $text-primary;
+}
+
+/* Radio button focus-ring circle uses the global default primary, not PH's primary */
+.mdl-radio.show-focus .mdl-radio__button:focus + .mdl-radio__circles .mdl-radio__focus-circle {
+    background: palette.$primary-main;
+}
+
+/* Guide date tab — dimmed by default */
+.guide-date-tab-button {
+    color: rgba(255, 255, 255, 0.3);
+}
+
+.programCell-active {
+    background: rgba(0, 0, 0, 0.4) !important;
+}
+
+/* Select element uses a narrower border than base inputs */
+.emby-select-withcolor {
+    border-width: 0.07em;
+}
+
+/* Select option uses the dark page colour as background */
+.emby-select-withcolor > option {
+    background: #030322d7; // $bg-base at 85% opacity
+}
+
+/* Checkbox checked state uses primary teal accent */
+.emby-checkbox:checked + span + .checkboxOutline {
+    background-color: #030322;
+    border-color: var(--jf-palette-primary-main, $primary-main);
+    border-style: solid;
+    border-width: 0.14em;
+}
+
+.emby-checkbox:checked + span + .checkboxOutline > .checkboxIcon-checked {
+    color: $teal-bright;
+}
+
+/* Focused checkbox uses secondary color */
+.emby-checkbox:focus + span + .checkboxOutline {
+    border-color: var(--jf-palette-secondary-main, $secondary-main);
+}
+
+/* Progress bar and playback indicators use bright teal */
+.itemProgressBarForeground {
+    background-color: $teal-bright;
+}
+
+.countIndicator,
+.fullSyncIndicator,
+.mediaSourceIndicator,
+.playedIndicator {
+    background: $teal-bright;
+}
+
+.downloadbutton-icon-complete,
+.downloadbutton-icon-on {
+    color: #4285f4;
+}
+
+/* buttonActive retains the global default primary blue, not PH's primary */
+.buttonActive {
+    color: palette.$primary-main !important;
+}
+
+/* Custom scrollbar colours */
+.layout-desktop,
+.scrollY {
+    scrollbar-width: thin;
+    scrollbar-color: #888 rgba(59, 59, 59, 0.5);
+}
+
+.layout-desktop ::-webkit-scrollbar,
+.layout-tv ::-webkit-scrollbar {
+    height: 1em;
+}
+
+::-webkit-scrollbar-track-piece {
+    background-color: rgba(59, 59, 59, 0.5);
+}
+
+.mediaInfoText {
+    color: $text-primary;
+    background: rgba(170, 170, 190, 0.2);
+}
+
+.mediaInfoOfficialRating {
+    border: 0.09em solid #583fa0;
+    background-color: $info-background;
+    color: #0e0f2d;
+}
+
+.metadataSidebarIcon {
+    color: $info-background;
+}

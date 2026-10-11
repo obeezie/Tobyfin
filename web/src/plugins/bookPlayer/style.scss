@@ -1,0 +1,84 @@
+#bookPlayer {
+    position: relative;
+    height: 100%;
+    width: 100%;
+    overflow: auto;
+    z-index: 100;
+    background: #fff;
+
+    .bookplayerButton {
+        margin: 0.5vh;
+    }
+
+    .bookplayerErrorMsg {
+        text-align: center;
+    }
+}
+
+#bookPlayerContainer {
+    position: absolute;
+    inset: 0;
+    z-index: 1000;
+    width: 100%;
+    top: env(safe-area-inset-top);
+    height: calc(100vh - env(safe-area-inset-top) - env(safe-area-inset-bottom));
+}
+
+#dialogToc {
+    background-color: white;
+    height: fit-content;
+    width: fit-content;
+    max-height: 80%;
+    max-width: 60%;
+
+    .bookplayerButtonIcon {
+        color: black;
+    }
+
+    .toc {
+        margin: 0;
+        padding: 30px;
+    }
+
+    .toc li {
+        margin-bottom: 5px;
+
+        list-style-type: none;
+        font-size: 1.2rem;
+        font-weight: bold;
+
+        ul {
+            padding-left: 1.5rem;
+
+            li {
+                font-weight: normal;
+            }
+        }
+
+        a:link {
+            color: #000;
+            text-decoration: none;
+        }
+
+        a:active,
+        a:hover {
+            color: #00a4dc;
+            text-decoration: none;
+        }
+    }
+}
+
+// TODO disable landscape on mobile devices
+@media (orientation: landscape) and (max-width: 60em) {
+    #bookPlayerContainer {
+        top: 10vh;
+        height: 80vh;
+    }
+}
+
+@media (max-width: 60em) {
+    #dialogToc {
+        max-width: 100%;
+        max-height: 100%;
+    }
+}

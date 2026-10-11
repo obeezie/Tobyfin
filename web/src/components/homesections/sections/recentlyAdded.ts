@@ -1,0 +1,204 @@
+import type { BaseItemDto } from '@jellyfin/sdk/lib/generated-client/models/base-item-dto';
+import { BaseItemKind } from '@jellyfin/sdk/lib/generated-client/models/base-item-kind';
+import { CollectionType } from '@jellyfin/sdk/lib/generated-client/models/collection-type';
+import { ImageType } from '@jellyfin/sdk/lib/generated-client/models/image-type';
+import { ItemFields } from '@jellyfin/sdk/lib/generated-client/models/item-fields';
+import type { UserDto } from '@jellyfin/sdk/lib/generated-client/models/user-dto';
+import escapeHtml from 'escape-html';
+import type { ApiClient } from 'jellyfin-apiclient';
+
+import { getLatestMediaQuery } from 'apps/legacy/features/libraries/api/useLatestMedia';
+import cardBuilder from 'components/cardbuilder/cardBuilder';
+import { getBackdropShape, getPortraitShape, getSquareShape } from 'components/cardbuilder/utils/shape';
+import layoutManager from 'components/layoutManager';
+import { appRouter } from 'components/router/appRouter';
+import globalize from 'lib/globalize';
+import ServerConnections from 'lib/jellyfin-apiclient/ServerConnections';
+import { queryClient } from 'utils/query/queryClient';
+
+import type { SectionContainerElement, SectionOptions } from './section';
+import { attachInfiniteMovieRow } from './infiniteMovieRow';
+import { createMoviePager } from './moviePaging';
+
+function getFetchLatestItemsFn(
+    apiClient: ApiClient,
+    user: UserDto | undefined,
+    parentId: string | undefined,
+    collectionType: string | null | undefined,
+    { enableOverflow }: SectionOptions
+) {
+    return function () {
+        const api = ServerConnections.getApi(apiClient.serverId());
+
+        let limit = 16;
+
+        if (enableOverflow) {
+            if (collectionType === CollectionType.Music) {
+                limit = 30;
+            }
+        } else if (collectionType === CollectionType.Tvshows) {
+            limit = 5;
+        } else if (collectionType === CollectionType.Music) {
+            limit = 9;
+        } else {
+            limit = 8;
+        }
+
+        const options = {
+            userId: user?.Id,
+            limit,
+            fields: [
+                ItemFields.PrimaryImageAspectRatio,
+                ItemFields.Path
+            ],
+            imageTypeLimit: 1,
+            enableImageTypes: [
+                ImageType.Primary,
+                ImageType.Backdrop,
+                ImageType.Thumb
+            ],
+            parentId
+        };
+
+        // Items/Latest applies HidePlayedInLatest when IsPlayed is omitted.
+        // A regular movie query keeps both played and unplayed additions visible.
+        if (collectionType === CollectionType.Movies || collectionType === CollectionType.Tvshows) {
+            return apiClient.getItems(user?.Id || apiClient.getCurrentUserId(), {
+                ParentId: parentId,
+                IncludeItemTypes: collectionType === CollectionType.Tvshows ? 'Series' : 'Movie',
+                Recursive: true,
+                SortBy: collectionType === CollectionType.Tvshows ? 'DateLastContentAdded,SortName' : 'DateCreated,SortName',
+                SortOrder: 'Descending',
+                Limit: limit,
+                Fields: 'PrimaryImageAspectRatio',
+                EnableTotalRecordCount: false
+            }).then(result => result.Items || []);
+        }
+
+        return queryClient
+            .fetchQuery(getLatestMediaQuery(api, options));
+    };
+}
+
+function getLatestItemsHtmlFn(
+    itemType: BaseItemKind | undefined,
+    viewType: string | null | undefined,
+    { enableOverflow }: SectionOptions
+) {
+    return function (items: BaseItemDto[]) {
+        const cardLayout = false;
+        let shape;
+        if (itemType === 'Channel' || viewType === 'movies' || viewType === 'books' || viewType === 'tvshows') {
+            shape = getPortraitShape(enableOverflow);
+        } else if (viewType === 'music' || viewType === 'homevideos') {
+            shape = getSquareShape(enableOverflow);
+        } else {
+            shape = getBackdropShape(enableOverflow);
+        }
+
+        return cardBuilder.getCardsHtml({
+            items: items,
+            shape: shape,
+            preferThumb: viewType !== 'movies' && viewType !== 'tvshows' && itemType !== 'Channel' && viewType !== 'music' ? 'auto' : null,
+            preferParentPoster: true,
+            showUnplayedIndicator: false,
+            showChildCountIndicator: true,
+            context: 'home',
+            overlayText: false,
+            centerText: !cardLayout,
+            overlayPlayButton: viewType !== 'photos',
+            allowBottomPadding: !enableOverflow && !cardLayout,
+            cardLayout: cardLayout,
+            showTitle: viewType !== 'photos',
+            showYear: viewType === 'movies' || viewType === 'tvshows' || !viewType,
+            showParentTitle: viewType === 'music' || viewType === 'tvshows' || !viewType || (cardLayout && (viewType === 'tvshows')),
+            lines: 2
+        });
+    };
+}
+
+function renderLatestSection(
+    elem: HTMLElement,
+    apiClient: ApiClient,
+    user: UserDto,
+    parent: BaseItemDto,
+    options: SectionOptions
+) {
+    let html = '';
+
+    html += '<div class="sectionTitleContainer sectionTitleContainer-cards padded-left">';
+    if (!layoutManager.tv) {
+        html += '<a is="emby-linkbutton" href="' + appRouter.getRouteUrl(parent, {
+            section: 'latest'
+        }) + '" class="more button-flat button-flat-mini sectionTitleTextButton">';
+        html += '<h2 class="sectionTitle sectionTitle-cards">';
+        html += globalize.translate('LatestFromLibrary', escapeHtml(parent.Name));
+        html += '</h2>';
+        html += '<span class="material-icons chevron_right" aria-hidden="true"></span>';
+        html += '</a>';
+    } else {
+        html += '<h2 class="sectionTitle sectionTitle-cards">' + globalize.translate('LatestFromLibrary', escapeHtml(parent.Name)) + '</h2>';
+    }
+    html += '</div>';
+
+    if (options.enableOverflow) {
+        html += '<div is="emby-scroller" class="padded-top-focusscale padded-bottom-focusscale" data-centerfocus="true">';
+        html += '<div is="emby-itemscontainer" class="itemsContainer scrollSlider focuscontainer-x">';
+    } else {
+        html += '<div is="emby-itemscontainer" class="itemsContainer focuscontainer-x padded-left padded-right vertical-wrap">';
+    }
+
+    if (options.enableOverflow) {
+        html += '</div>';
+    }
+    html += '</div>';
+
+    elem.innerHTML = html;
+
+    const itemsContainer: SectionContainerElement | null = elem.querySelector('.itemsContainer');
+    if (!itemsContainer) return;
+    const fetchLatest = getFetchLatestItemsFn(apiClient, user, parent.Id, parent.CollectionType, options);
+    const renderItems = getLatestItemsHtmlFn(parent.Type, parent.CollectionType, options);
+    itemsContainer.fetchData = async () => {
+        const items = await fetchLatest() || [];
+        if ((parent.CollectionType === CollectionType.Movies || parent.CollectionType === CollectionType.Tvshows) && options.enableOverflow) {
+            const pager = createMoviePager((query: Record<string, unknown>) => apiClient.getItems(user.Id || apiClient.getCurrentUserId(), query), {
+                ParentId: parent.Id, IncludeItemTypes: parent.CollectionType === CollectionType.Tvshows ? 'Series' : 'Movie', Recursive: true,
+                Fields: 'PrimaryImageAspectRatio', SortBy: parent.CollectionType === CollectionType.Tvshows ? 'DateLastContentAdded,SortName' : 'DateCreated,SortName', SortOrder: 'Descending'
+            }, items);
+            itemsContainer.afterRefresh = () => attachInfiniteMovieRow(itemsContainer, pager, renderItems);
+        }
+        return items;
+    };
+    itemsContainer.getItemsHtml = renderItems;
+    itemsContainer.parentContainer = elem;
+}
+
+export function loadRecentlyAdded(
+    elem: HTMLElement,
+    apiClient: ApiClient,
+    user: UserDto,
+    userViews: BaseItemDto[],
+    options: SectionOptions
+) {
+    elem.classList.remove('verticalSection');
+    const excludeViewTypes = ['playlists', 'livetv', 'boxsets', 'channels', 'folders'];
+    const userExcludeItems = user.Configuration?.LatestItemsExcludes ?? [];
+
+    userViews.forEach(item => {
+        if (!item.Id || userExcludeItems.includes(item.Id)) {
+            return;
+        }
+
+        if (item.CollectionType && excludeViewTypes.includes(item.CollectionType)) {
+            return;
+        }
+
+        const frag = document.createElement('div');
+        frag.classList.add('verticalSection');
+        frag.classList.add('hide');
+        elem.appendChild(frag);
+
+        renderLatestSection(frag, apiClient, user, item, options);
+    });
+}

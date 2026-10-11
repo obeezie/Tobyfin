@@ -1,0 +1,14 @@
+Vaša vsebina po vaših pogojih.
+
+Projekt Jellyfin je odprtokodni, brezplačni medijski strežnik. Brez stroškov, brez sledenja, brez skrite agende. Uporabite naš brezplačni strežnik za zbiranje vse vaše glasbe, videoposnetkov, fotografij in še več na enem mestu.
+
+Če želite uporabljati aplikacijo, morate imeti nameščen strežnik Jellyfin. Izvedite več o tem na <a href="https://jellyfin.org/" target="_blank">jellyfin.org</a>.
+
+S strežnikom Jellyfin lahko:
+
+* Spremljate TV v živo ter posnete pretekle vsebine (potrebna je dodatna strojna oprema/storitve)
+* Pretakate v Chromecast napravo v omrežju
+* Pretakate predstavnosti v napravo Android
+* Gledate vašo zbirko vsebin s preprostim uporabniškim vmesnikom
+
+To je uradna Jellyfin aplikacija za Android TV. Hvala, ker uporabljate Jellyfin!

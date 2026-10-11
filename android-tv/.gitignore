@@ -1,0 +1,16 @@
+*.iml
+.DS_Store
+local.properties
+
+/.idea
+.gradle
+.kotlin/
+build/
+captures/
+
+# Tobyfin local outputs
+*.apk
+*.aab
+*.log
+*.jks
+*.keystore

@@ -1,0 +1,142 @@
+package org.jellyfin.androidtv.ui.settings.screen.playback
+
+import androidx.compose.foundation.Image
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.lazy.items
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.unit.dp
+import coil3.compose.rememberAsyncImagePainter
+import org.jellyfin.androidtv.BuildConfig
+import org.jellyfin.androidtv.R
+import org.jellyfin.androidtv.data.repository.ExternalAppRepository
+import org.jellyfin.androidtv.preference.UserPreferences
+import org.jellyfin.androidtv.ui.base.LocalShapes
+import org.jellyfin.androidtv.ui.base.Text
+import org.jellyfin.androidtv.ui.base.form.RadioButton
+import org.jellyfin.androidtv.ui.base.list.ListButton
+import org.jellyfin.androidtv.ui.base.list.ListMessage
+import org.jellyfin.androidtv.ui.base.list.ListSection
+import org.jellyfin.androidtv.ui.navigation.LocalRouter
+import org.jellyfin.androidtv.ui.navigation.focus.focusKey
+import org.jellyfin.androidtv.ui.settings.compat.rememberPreference
+import org.jellyfin.androidtv.ui.settings.composable.SettingsColumn
+import org.jellyfin.androidtv.util.componentName
+import org.koin.compose.koinInject
+
+@Composable
+fun SettingsPlaybackPlayerScreen() {
+	val userPreferences = koinInject<UserPreferences>()
+	val externalAppRepository = koinInject<ExternalAppRepository>()
+	val context = LocalContext.current
+	val router = LocalRouter.current
+	val packageManager = context.packageManager
+
+	val externalPlayerApps = remember(context) { externalAppRepository.getExternalPlayerApps(context) }
+	val currentExternalPlayer = remember(context) { externalAppRepository.getCurrentExternalPlayerApp(context) }
+
+	var playbackRewriteVideoEnabled by rememberPreference(userPreferences, UserPreferences.playbackRewriteVideoEnabled)
+	val showNewPlayer = playbackRewriteVideoEnabled || BuildConfig.DEVELOPMENT
+
+	SettingsColumn {
+		item {
+			ListSection(
+				overlineContent = { Text(stringResource(R.string.pref_playback).uppercase()) },
+				headingContent = { Text(stringResource(R.string.playback_video_player)) },
+			)
+		}
+
+		item {
+			ListButton(
+				leadingContent = {
+					Image(
+						painter = rememberAsyncImagePainter(R.mipmap.app_icon),
+						contentDescription = null,
+						modifier = Modifier
+							.size(32.dp)
+							.clip(LocalShapes.current.small)
+					)
+				},
+				headingContent = { Text(stringResource(R.string.app_name)) },
+				trailingContent = { RadioButton(checked = currentExternalPlayer == null && !playbackRewriteVideoEnabled) },
+				captionContent = { Text(stringResource(R.string.video_player_internal)) },
+				onClick = {
+					playbackRewriteVideoEnabled = false
+					externalAppRepository.setExternalPlayerapp(null)
+					router.back()
+				},
+				modifier = Modifier
+					.focusKey("player_internal", initialFocus = currentExternalPlayer == null && !playbackRewriteVideoEnabled)
+			)
+		}
+
+		if (showNewPlayer) item {
+			ListButton(
+				leadingContent = {
+					Image(
+						painter = rememberAsyncImagePainter(R.drawable.ic_flask),
+						contentDescription = null,
+						modifier = Modifier
+							.size(32.dp)
+							.clip(LocalShapes.current.small)
+					)
+				},
+				headingContent = { Text("New video player") },
+				trailingContent = { RadioButton(checked = currentExternalPlayer == null && playbackRewriteVideoEnabled) },
+				captionContent = { Text(stringResource(R.string.enable_playback_module_description)) },
+				onClick = {
+					playbackRewriteVideoEnabled = true
+					externalAppRepository.setExternalPlayerapp(null)
+					router.back()
+				},
+				modifier = Modifier
+					.focusKey("player_new", initialFocus = currentExternalPlayer == null && playbackRewriteVideoEnabled)
+			)
+		}
+
+		item { ListSection(headingContent = { Text(stringResource(R.string.video_player_external)) }) }
+
+		if (externalPlayerApps.isEmpty()) {
+			item {
+				ListMessage {
+					Text(stringResource(R.string.playback_video_player_external_empty))
+				}
+			}
+		}
+
+		items(externalPlayerApps) { app ->
+			val icon = remember(app, packageManager) { app.loadIcon(packageManager) }
+			val displayName = remember(app, packageManager) { app.loadLabel(packageManager).toString() }
+
+			ListButton(
+				leadingContent = {
+					Image(
+						painter = rememberAsyncImagePainter(icon),
+						contentDescription = null,
+						modifier = Modifier
+							.size(32.dp)
+							.clip(LocalShapes.current.small)
+					)
+				},
+				headingContent = { Text(displayName) },
+				trailingContent = { RadioButton(checked = currentExternalPlayer?.componentName == app.activityInfo.componentName) },
+				captionContent = { Text(stringResource(R.string.video_player_external)) },
+				onClick = {
+					externalAppRepository.setExternalPlayerapp(app.activityInfo)
+					router.back()
+				},
+				modifier = Modifier
+					.focusKey(
+						key = "player_external_${app.activityInfo.componentName}",
+						initialFocus = currentExternalPlayer?.componentName == app.activityInfo.componentName,
+					)
+			)
+		}
+	}
+}

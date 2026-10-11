@@ -53,6 +53,7 @@ import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.PathEffect
+import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.graphics.CompositingStrategy
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.graphics.graphicsLayer
@@ -441,11 +442,13 @@ class WhosWatchingFragment : Fragment() {
 				.fillMaxSize()
 				.drawBehind {
 					drawCircle(Muted, radius = size.minDimension / 2 - 3.dp.toPx(), style = Stroke(3.dp.toPx(), pathEffect = PathEffect.dashPathEffect(floatArrayOf(18f, 14f))))
+					// Drawn rather than a "+" glyph, whose font metrics sit off the circle's center.
+					val arm = 22.dp.toPx()
+					val width = 5.dp.toPx()
+					drawLine(Muted, center - Offset(arm, 0f), center + Offset(arm, 0f), width, StrokeCap.Round)
+					drawLine(Muted, center - Offset(0f, arm), center + Offset(0f, arm), width, StrokeCap.Round)
 				},
-			contentAlignment = Alignment.Center,
-		) {
-			Text("+", fontFamily = Jakarta, fontWeight = FontWeight.Medium, fontSize = 72.sp, color = Muted)
-		}
+		)
 	}
 
 	@Composable

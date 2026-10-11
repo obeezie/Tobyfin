@@ -68,6 +68,7 @@ fun SettingsAuthenticationScreen(launchedFromLogin: Boolean = false) {
 				headingContent = { Text(stringResource(R.string.auto_sign_in)) },
 				captionContent = {
 					when (autoLoginUserBehavior) {
+						UserSelectBehavior.ASK -> Text(stringResource(R.string.user_picker_ask_title))
 						UserSelectBehavior.DISABLED -> Text(stringResource(R.string.user_picker_disable_title))
 						UserSelectBehavior.LAST_USER -> Text(stringResource(R.string.user_picker_last_user_title))
 						UserSelectBehavior.SPECIFIC_USER -> Text(autoLoginUser?.name ?: stringResource(R.string.loading))

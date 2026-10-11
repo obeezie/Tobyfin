@@ -13,7 +13,7 @@ class AuthenticationPreferences(context: Context) : SharedPreferenceStore(
 ) {
 	companion object {
 		// Preferences
-		val autoLoginUserBehavior = enumPreference("auto_login_user_behavior", UserSelectBehavior.LAST_USER)
+		val autoLoginUserBehavior = enumPreference("auto_login_user_behavior", UserSelectBehavior.ASK)
 		val autoLoginServerId = stringPreference("auto_login_server_id", "")
 		val autoLoginUserId = stringPreference("auto_login_user_id", "")
 

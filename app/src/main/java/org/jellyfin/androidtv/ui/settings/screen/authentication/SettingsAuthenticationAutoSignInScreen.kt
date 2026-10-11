@@ -56,6 +56,20 @@ fun SettingsAuthenticationAutoSignInScreen() {
 
 		item {
 			ListButton(
+				headingContent = { Text(stringResource(R.string.user_picker_ask_title)) },
+				captionContent = { Text(stringResource(R.string.user_picker_ask_summary)) },
+				trailingContent = { RadioButton(checked = autoLoginUserBehavior == UserSelectBehavior.ASK) },
+				onClick = {
+					autoLoginUserBehavior = UserSelectBehavior.ASK
+					router.back()
+				},
+				modifier = Modifier
+					.focusKey("ask", initialFocus = autoLoginUserBehavior == UserSelectBehavior.ASK)
+			)
+		}
+
+		item {
+			ListButton(
 				headingContent = { Text(stringResource(R.string.user_picker_disable_title)) },
 				captionContent = { Text(stringResource(R.string.user_picker_disable_summary)) },
 				trailingContent = { RadioButton(checked = autoLoginUserBehavior == UserSelectBehavior.DISABLED) },

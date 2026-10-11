@@ -43,6 +43,10 @@ import org.jellyfin.androidtv.ui.startup.fragment.SelectServerFragment
 import org.jellyfin.androidtv.ui.startup.fragment.ServerFragment
 import org.jellyfin.androidtv.ui.startup.fragment.SplashFragment
 import org.jellyfin.androidtv.ui.startup.fragment.StartupToolbarFragment
+import org.jellyfin.androidtv.ui.startup.fragment.WhosWatchingFragment
+import org.jellyfin.androidtv.auth.store.AuthenticationPreferences
+import org.jellyfin.androidtv.auth.store.AuthenticationStore
+import org.jellyfin.androidtv.preference.constant.UserSelectBehavior
 import org.jellyfin.androidtv.util.applyTheme
 import org.jellyfin.androidtv.util.createBundle
 import org.jellyfin.sdk.api.client.ApiClient
@@ -69,6 +73,8 @@ class StartupActivity : FragmentActivity() {
 	private val itemLauncher: ItemLauncher by inject()
 	private val workManager: WorkManager by inject()
 	private val socketListener: SocketHandler by inject()
+	private val authenticationStore: AuthenticationStore by inject()
+	private val authenticationPreferences: AuthenticationPreferences by inject()
 
 	private lateinit var binding: ActivityStartupBinding
 
@@ -117,7 +123,8 @@ class StartupActivity : FragmentActivity() {
 			if (session != null) {
 				Timber.i("Found a session in the session repository, waiting for the currentUser in the application class.")
 
-				showSplash()
+				// After "Who's watching?" the chosen avatar has already grown into the screen; skip the splash.
+				if (supportFragmentManager.findFragmentById(R.id.content_view) !is WhosWatchingFragment) showSplash()
 
 				val currentUser = userRepository.currentUser.first { it != null }
 				Timber.i("CurrentUser changed to ${currentUser?.id} while waiting for startup.")
@@ -130,8 +137,14 @@ class StartupActivity : FragmentActivity() {
 				mediaManager.clearAudioQueue()
 
 				val server = startupViewModel.getLastServer()
-				if (server != null) showServer(server.id)
-				else showServerSelection()
+				val savedProfiles = authenticationStore.getServers().values.sumOf { it.users.size }
+				val behavior = authenticationPreferences[AuthenticationPreferences.autoLoginUserBehavior]
+				when {
+					// Tobyfin: pick a profile, also when switching from Home's profile button with one saved.
+					behavior == UserSelectBehavior.ASK && savedProfiles > 0 -> showWhosWatching()
+					server != null -> showServer(server.id)
+					else -> showServerSelection()
+				}
 			}
 		}.launchIn(lifecycleScope)
 
@@ -206,6 +219,11 @@ class StartupActivity : FragmentActivity() {
 				putString(ServerFragment.ARG_SERVER_ID, id.toString())
 			}
 		)
+	}
+
+	private fun showWhosWatching() {
+		if (supportFragmentManager.findFragmentById(R.id.content_view) is WhosWatchingFragment) return
+		supportFragmentManager.commit { replace<WhosWatchingFragment>(R.id.content_view) }
 	}
 
 	private fun showServerSelection() = supportFragmentManager.commit {

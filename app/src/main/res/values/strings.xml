@@ -368,6 +368,12 @@
     <string name="lbl_use_series_thumbnails">Prefer series thumbnails</string>
     <string name="lbl_use_series_thumbnails_description">Use series thumbnails when displaying episodes</string>
     <string name="auto_sign_in">Automatic sign in</string>
+    <string name="user_picker_ask_title">Ask who\'s watching</string>
+    <string name="user_picker_ask_summary">Choose a profile when Tobyfin opens and after 30 minutes away</string>
+    <string name="whos_watching_title">Who\'s watching?</string>
+    <string name="whos_watching_add_profile">Add profile</string>
+    <string name="whos_watching_remove">Remove from this TV</string>
+    <string name="whos_watching_remove_summary">This only forgets %1$s on this TV. Their Jellyfin account is not changed.</string>
     <string name="user_picker_disable_title">Disable</string>
     <string name="user_picker_disable_summary">Always show the sign in screen</string>
     <string name="user_picker_last_user_title">Most recently used</string>

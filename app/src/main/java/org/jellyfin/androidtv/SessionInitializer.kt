@@ -1,5 +1,6 @@
 package org.jellyfin.androidtv
 
+import android.app.Application
 import android.content.Context
 import androidx.lifecycle.ProcessLifecycleOwner
 import androidx.lifecycle.lifecycleScope
@@ -7,6 +8,7 @@ import androidx.startup.AppInitializer
 import androidx.startup.Initializer
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
+import org.jellyfin.androidtv.auth.WhosWatchingReturnWatcher
 import org.jellyfin.androidtv.auth.repository.SessionRepository
 import org.jellyfin.androidtv.di.KoinInitializer
 
@@ -16,6 +18,9 @@ class SessionInitializer : Initializer<Unit> {
 		val koin = AppInitializer.getInstance(context)
 			.initializeComponent(KoinInitializer::class.java)
 			.koin
+
+		// Tobyfin: ask "Who's watching?" again after a long time away
+		WhosWatchingReturnWatcher(context.applicationContext as Application, koin).register()
 
 		// Restore system session
 		ProcessLifecycleOwner.get().lifecycleScope.launch(Dispatchers.IO) {

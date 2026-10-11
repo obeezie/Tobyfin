@@ -13,6 +13,8 @@ import org.jellyfin.androidtv.auth.store.AuthenticationPreferences
 import org.jellyfin.androidtv.auth.store.AuthenticationStore
 import org.jellyfin.androidtv.preference.PreferencesRepository
 import org.jellyfin.androidtv.preference.TelemetryPreferences
+import org.jellyfin.androidtv.auth.WhosWatching
+import org.jellyfin.androidtv.preference.constant.UserSelectBehavior.ASK
 import org.jellyfin.androidtv.preference.constant.UserSelectBehavior.DISABLED
 import org.jellyfin.androidtv.preference.constant.UserSelectBehavior.LAST_USER
 import org.jellyfin.androidtv.preference.constant.UserSelectBehavior.SPECIFIC_USER
@@ -75,6 +77,11 @@ class SessionRepositoryImpl(
 			when {
 				alwaysAuthenticate -> destroyCurrentSession()
 				autoLoginBehavior == DISABLED -> destroyCurrentSession()
+				autoLoginBehavior == ASK && !destroyOnly -> {
+					val savedProfiles = authenticationStore.getServers().values.sumOf { it.users.size }
+					if (WhosWatching.askOnLaunch(ASK, savedProfiles)) destroyCurrentSession()
+					else setCurrentSession(createLastUserSession())
+				}
 				autoLoginBehavior == LAST_USER && !destroyOnly -> setCurrentSession(createLastUserSession())
 				autoLoginBehavior == SPECIFIC_USER && !destroyOnly -> {
 					val serverId = authenticationPreferences[AuthenticationPreferences.autoLoginServerId].toUUIDOrNull()

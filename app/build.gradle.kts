@@ -16,7 +16,7 @@ android {
 		// Release version
 		applicationId = namespace
 		versionName = project.getVersionName()
-		versionCode = maxOf(16, getVersionCode(versionName!!))
+		versionCode = maxOf(17, getVersionCode(versionName!!))
 	}
 
 	buildFeatures {
@@ -78,7 +78,7 @@ android {
 			isDebuggable = false
 			isMinifyEnabled = true
 			proguardFiles(getDefaultProguardFile("proguard-android-optimize.txt"), "proguard-rules.pro")
-            versionNameSuffix = "-tobyfin.16"
+            versionNameSuffix = "-tobyfin.17"
 
 			// Set package names used in various XML files
 			resValue("string", "app_id", namespace + applicationIdSuffix)

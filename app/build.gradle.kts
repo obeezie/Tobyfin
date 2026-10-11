@@ -16,7 +16,7 @@ android {
 		// Release version
 		applicationId = namespace
 		versionName = project.getVersionName()
-		versionCode = maxOf(15, getVersionCode(versionName!!))
+		versionCode = maxOf(16, getVersionCode(versionName!!))
 	}
 
 	buildFeatures {
@@ -73,7 +73,12 @@ android {
 		debug {
 			// Use different application id to run release and debug at the same time
 			applicationIdSuffix = ".debug"
-            versionNameSuffix = "-tobyfin.15"
+			// Tobyfin installs this build day to day: debuggable apps run with fewer ART optimizations and
+			// log every Timber message, which made Home navigation stutter on the Shield.
+			isDebuggable = false
+			isMinifyEnabled = true
+			proguardFiles(getDefaultProguardFile("proguard-android-optimize.txt"), "proguard-rules.pro")
+            versionNameSuffix = "-tobyfin.16"
 
 			// Set package names used in various XML files
 			resValue("string", "app_id", namespace + applicationIdSuffix)

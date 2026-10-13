@@ -45,7 +45,6 @@ import org.jellyfin.androidtv.ui.startup.fragment.SplashFragment
 import org.jellyfin.androidtv.ui.startup.fragment.StartupToolbarFragment
 import org.jellyfin.androidtv.ui.startup.fragment.WhosWatchingFragment
 import org.jellyfin.androidtv.auth.store.AuthenticationPreferences
-import org.jellyfin.androidtv.auth.store.AuthenticationStore
 import org.jellyfin.androidtv.preference.constant.UserSelectBehavior
 import org.jellyfin.androidtv.util.applyTheme
 import org.jellyfin.androidtv.util.createBundle
@@ -73,7 +72,6 @@ class StartupActivity : FragmentActivity() {
 	private val itemLauncher: ItemLauncher by inject()
 	private val workManager: WorkManager by inject()
 	private val socketListener: SocketHandler by inject()
-	private val authenticationStore: AuthenticationStore by inject()
 	private val authenticationPreferences: AuthenticationPreferences by inject()
 
 	private lateinit var binding: ActivityStartupBinding
@@ -137,11 +135,11 @@ class StartupActivity : FragmentActivity() {
 				mediaManager.clearAudioQueue()
 
 				val server = startupViewModel.getLastServer()
-				val savedProfiles = authenticationStore.getServers().values.sumOf { it.users.size }
 				val behavior = authenticationPreferences[AuthenticationPreferences.autoLoginUserBehavior]
 				when {
-					// Tobyfin: pick a profile, also when switching from Home's profile button with one saved.
-					behavior == UserSelectBehavior.ASK && savedProfiles > 0 -> showWhosWatching()
+					// Tobyfin: pick a profile, also when switching from Home's profile button with one saved. With none
+					// saved yet (a fresh install) the picker opens with its add panel up.
+					behavior == UserSelectBehavior.ASK -> showWhosWatching()
 					server != null -> showServer(server.id)
 					else -> showServerSelection()
 				}

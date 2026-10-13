@@ -16,7 +16,7 @@ android {
 		// Release version
 		applicationId = namespace
 		versionName = project.getVersionName()
-		versionCode = maxOf(20, getVersionCode(versionName!!))
+		versionCode = maxOf(21, getVersionCode(versionName!!))
 	}
 
 	buildFeatures {
@@ -78,7 +78,7 @@ android {
 			isDebuggable = false
 			isMinifyEnabled = true
 			proguardFiles(getDefaultProguardFile("proguard-android-optimize.txt"), "proguard-rules.pro")
-            versionNameSuffix = "-tobyfin.20"
+            versionNameSuffix = "-tobyfin.21"
 
 			// Set package names used in various XML files
 			resValue("string", "app_id", namespace + applicationIdSuffix)
@@ -184,6 +184,9 @@ dependencies {
 
 	// Logging
 	implementation(libs.timber)
+
+	// QR codes (Quick Connect in "Who's watching?")
+	implementation(libs.zxing.core)
 	implementation(libs.slf4j.timber)
 
 	// Compatibility (desugaring)

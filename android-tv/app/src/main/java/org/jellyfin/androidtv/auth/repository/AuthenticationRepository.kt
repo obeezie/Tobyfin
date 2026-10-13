@@ -6,6 +6,7 @@ import kotlinx.coroutines.flow.emitAll
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.flowOn
+import kotlinx.coroutines.withContext
 import org.jellyfin.androidtv.auth.model.ApiClientErrorLoginState
 import org.jellyfin.androidtv.auth.model.AuthenticateMethod
 import org.jellyfin.androidtv.auth.model.AuthenticatedState
@@ -17,6 +18,7 @@ import org.jellyfin.androidtv.auth.model.LoginState
 import org.jellyfin.androidtv.auth.model.PrivateUser
 import org.jellyfin.androidtv.auth.model.QuickConnectAuthenticateMethod
 import org.jellyfin.androidtv.auth.model.RequireSignInState
+import org.jellyfin.androidtv.auth.model.SaveAccountResult
 import org.jellyfin.androidtv.auth.model.Server
 import org.jellyfin.androidtv.auth.model.ServerUnavailableState
 import org.jellyfin.androidtv.auth.model.ServerVersionNotSupported
@@ -31,6 +33,7 @@ import org.jellyfin.androidtv.util.sdk.forUser
 import org.jellyfin.sdk.Jellyfin
 import org.jellyfin.sdk.api.client.ApiClient
 import org.jellyfin.sdk.api.client.exception.ApiClientException
+import org.jellyfin.sdk.api.client.exception.InvalidStatusException
 import org.jellyfin.sdk.api.client.exception.TimeoutException
 import org.jellyfin.sdk.api.client.extensions.authenticateUserByName
 import org.jellyfin.sdk.api.client.extensions.authenticateWithQuickConnect
@@ -47,6 +50,12 @@ import java.time.Instant
  */
 interface AuthenticationRepository {
 	fun authenticate(server: Server, method: AuthenticateMethod): Flow<LoginState>
+
+	/**
+	 * Sign in with a password or Quick Connect and save the account on this device, without switching to it.
+	 * Tobyfin's "Who's watching?" uses this to add a profile, then opens it like any other.
+	 */
+	suspend fun saveAccount(server: Server, method: AuthenticateMethod): SaveAccountResult
 	fun logout(user: User): Boolean
 	fun getUserImageUrl(server: Server, user: User): String?
 }
@@ -65,6 +74,45 @@ class AuthenticationRepositoryImpl(
 			is CredentialAuthenticateMethod -> authenticateCredential(server, method.username, method.password)
 			is QuickConnectAuthenticateMethod -> authenticateQuickConnect(server, method.secret)
 		}
+	}
+
+	override suspend fun saveAccount(server: Server, method: AuthenticateMethod): SaveAccountResult = withContext(Dispatchers.IO) {
+		val result = try {
+			when (method) {
+				is CredentialAuthenticateMethod -> jellyfin
+					.createApi(server.address, deviceInfo = defaultDeviceInfo.forUser(method.username))
+					.userApi.authenticateUserByName(method.username, method.password).content
+
+				is QuickConnectAuthenticateMethod -> jellyfin
+					.createApi(server.address, deviceInfo = defaultDeviceInfo)
+					.userApi.authenticateWithQuickConnect(method.secret).content
+
+				is AutomaticAuthenticateMethod -> error("Saving an account needs a password or Quick Connect")
+			}
+		} catch (err: TimeoutException) {
+			Timber.e(err, "Failed to connect to server while saving an account")
+			return@withContext SaveAccountResult.ServerUnavailable
+		} catch (err: InvalidStatusException) {
+			Timber.w(err, "Server refused the sign-in while saving an account")
+			return@withContext if (err.status == 401) SaveAccountResult.WrongCredentials else SaveAccountResult.Failed
+		} catch (err: ApiClientException) {
+			Timber.e(err, "Unable to save an account")
+			return@withContext SaveAccountResult.Failed
+		}
+
+		val accessToken = result.accessToken ?: return@withContext SaveAccountResult.Failed
+		val userInfo = result.user ?: return@withContext SaveAccountResult.Failed
+		authenticateFinish(server, userInfo, accessToken)
+		SaveAccountResult.Saved(
+			PrivateUser(
+				id = userInfo.id,
+				serverId = server.id,
+				name = userInfo.name!!,
+				accessToken = accessToken,
+				imageTag = userInfo.primaryImage?.tag,
+				lastUsed = Instant.now().toEpochMilli(),
+			)
+		)
 	}
 
 	private fun authenticateAutomatic(server: Server, user: User): Flow<LoginState> {

@@ -41,6 +41,7 @@ markwon = "4.6.2"
 mockk = "1.14.11"
 slf4j-timber = "0.0.4"
 timber = "5.0.1"
+zxing = "3.5.3"
 
 [plugins]
 aboutlibraries = { id = "com.mikepenz.aboutlibraries.plugin.android", version.ref = "aboutlibraries" }
@@ -124,6 +125,7 @@ aboutlibraries = { module = "com.mikepenz:aboutlibraries-core", version.ref = "a
 # Logging
 slf4j-timber = { module = "io.github.unveloper:slf4j-timber", version.ref = "slf4j-timber" }
 timber = { module = "com.jakewharton.timber:timber", version.ref = "timber" }
+zxing-core = { module = "com.google.zxing:core", version.ref = "zxing" }
 
 # Compatibility (desugaring)
 android-desugar = { module = "com.android.tools:desugar_jdk_libs", version.ref = "android-desugar" }

@@ -6,12 +6,12 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.Toast
-import androidx.activity.compose.BackHandler
 import androidx.compose.animation.core.CubicBezierEasing
 import androidx.compose.animation.core.FastOutSlowInEasing
 import androidx.compose.animation.core.LinearEasing
 import androidx.compose.animation.core.RepeatMode
 import androidx.compose.animation.core.animateFloat
+import androidx.compose.animation.core.Animatable
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.infiniteRepeatable
 import androidx.compose.animation.core.rememberInfiniteTransition
@@ -34,6 +34,8 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.key
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
@@ -65,9 +67,6 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.ComposeView
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.text.font.Font
-import androidx.compose.ui.text.font.FontFamily
-import androidx.compose.ui.text.font.FontVariation
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
@@ -76,7 +75,9 @@ import androidx.fragment.app.Fragment
 import androidx.fragment.app.add
 import androidx.fragment.app.commit
 import androidx.fragment.app.replace
+import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
+import androidx.lifecycle.repeatOnLifecycle
 import coil3.compose.AsyncImage
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.launchIn
@@ -100,12 +101,15 @@ import org.jellyfin.androidtv.ui.base.JellyfinTheme
 import org.jellyfin.androidtv.ui.base.ProfileColors
 import org.jellyfin.androidtv.ui.base.Text
 import org.jellyfin.androidtv.ui.base.button.Button
+import org.jellyfin.androidtv.ui.startup.AddProfileViewModel
 import org.jellyfin.androidtv.ui.startup.StartupViewModel
 import org.jellyfin.androidtv.util.createBundle
 import org.jellyfin.sdk.model.serializer.toUUIDOrNull
 import org.koin.android.ext.android.inject
 import org.koin.androidx.viewmodel.ext.android.activityViewModel
+import org.koin.androidx.viewmodel.ext.android.viewModel
 import java.util.Locale
+import java.util.UUID
 import kotlin.math.abs
 
 /**
@@ -114,6 +118,7 @@ import kotlin.math.abs
  */
 class WhosWatchingFragment : Fragment() {
 	private val startupViewModel: StartupViewModel by activityViewModel()
+	private val addProfileViewModel: AddProfileViewModel by viewModel()
 	private val serverRepository: ServerRepository by inject()
 	private val serverUserRepository: ServerUserRepository by inject()
 	private val authenticationStore: AuthenticationStore by inject()
@@ -130,9 +135,32 @@ class WhosWatchingFragment : Fragment() {
 	private var menuFor by mutableStateOf<Profile?>(null)
 	private var multipleServers by mutableStateOf(false)
 
+	/** A profile just added from the panel: it grows into the carousel before opening. */
+	private var arriving by mutableStateOf<UUID?>(null)
+
 	override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View {
 		return ComposeView(requireContext()).apply {
 			setContent { JellyfinTheme { WhosWatchingScreen() } }
+		}
+	}
+
+	override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
+		super.onViewCreated(view, savedInstanceState)
+		viewLifecycleOwner.lifecycleScope.launch {
+			viewLifecycleOwner.repeatOnLifecycle(Lifecycle.State.STARTED) {
+				addProfileViewModel.saved.collect { user ->
+					// The new profile joins the carousel, then opens like choosing any profile.
+					val isNew = profiles.none { it.user.id == user.id && it.server.id == user.serverId }
+					loadProfiles(keepFocus = true).join()
+					val index = profiles.indexOfFirst { it.user.id == user.id && it.server.id == user.serverId }
+					if (index < 0) return@collect
+					// Someone already on this TV just had their sign-in refreshed: no arrival, no duplicate.
+					arriving = user.id.takeIf { isNew }
+					focus = index
+					delay(ARRIVE_MILLIS)
+					choose()
+				}
+			}
 		}
 	}
 
@@ -154,7 +182,12 @@ class WhosWatchingFragment : Fragment() {
 		}
 		multipleServers = loaded.map { it.server.id }.distinct().size > 1
 		profiles = loaded
-		if (loaded.isEmpty()) return@launch showServerScreen()
+		// Nobody to pick yet: the add panel opens over the empty picker.
+		if (loaded.isEmpty()) {
+			focus = 0
+			addProfileViewModel.open()
+			return@launch
+		}
 		if (!keepFocus) {
 			val lastUserId = authenticationPreferences[AuthenticationPreferences.lastUserId].toUUIDOrNull()
 			focus = WhosWatching.initialFocus(loaded) { it.user.id == lastUserId }
@@ -202,27 +235,16 @@ class WhosWatchingFragment : Fragment() {
 		}.launchIn(lifecycleScope)
 	}
 
-	private fun addProfile() {
-		val servers = profiles.map { it.server }.distinctBy { it.id }
-		if (servers.size == 1) navigate<UserLoginFragment>(createBundle {
-			putString(UserLoginFragment.ARG_SERVER_ID, servers.first().id.toString())
-			putString(UserLoginFragment.ARG_USERNAME, null)
-		}) else requireActivity().supportFragmentManager.commit {
-			replace<StartupToolbarFragment>(R.id.content_view)
-			add<SelectServerFragment>(R.id.content_view)
-			addToBackStack(null)
-		}
-	}
+	private fun addProfile() = addProfileViewModel.open()
 
 	private fun remove(profile: Profile) {
 		serverUserRepository.deleteStoredUser(profile.user)
 		menuFor = null
-		loadProfiles(keepFocus = true)
-	}
-
-	private fun showServerScreen() = requireActivity().supportFragmentManager.commit {
-		replace<StartupToolbarFragment>(R.id.content_view)
-		add<SelectServerFragment>(R.id.content_view)
+		lifecycleScope.launch {
+			// This TV forgets a server once none of its profiles are left.
+			if (serverUserRepository.getStoredServerUsers(profile.server).isEmpty()) serverRepository.deleteServer(profile.server.id)
+			loadProfiles(keepFocus = true)
+		}
 	}
 
 	private inline fun <reified F : Fragment> navigate(args: Bundle) = requireActivity().supportFragmentManager.commit {
@@ -235,6 +257,7 @@ class WhosWatchingFragment : Fragment() {
 		val focusRequester = remember { FocusRequester() }
 		var okHeld by remember { mutableStateOf(false) }
 		val opened = opening != null
+		val panelOpen = addProfileViewModel.steps.collectAsState().value.isNotEmpty()
 		val chromeAlpha by animateFloatAsState(if (opened) 0f else 1f, tween(250), label = "chrome")
 
 		Box(
@@ -253,7 +276,7 @@ class WhosWatchingFragment : Fragment() {
 					true
 				}
 				.onKeyEvent { event ->
-					if (menuFor != null || opened) return@onKeyEvent false
+					if (menuFor != null || opened || panelOpen) return@onKeyEvent false
 					val code = event.key.nativeKeyCode
 					val isOk = code == KeyEvent.KEYCODE_DPAD_CENTER || code == KeyEvent.KEYCODE_ENTER || code == KeyEvent.KEYCODE_NUMPAD_ENTER
 					when {
@@ -305,19 +328,27 @@ class WhosWatchingFragment : Fragment() {
 
 			Box(Modifier.fillMaxSize().padding(top = 70.dp), contentAlignment = Alignment.Center) {
 				profiles.forEachIndexed { index, profile ->
-					ProfileCard(index, profile.displayName, profile.server.name.takeIf { multipleServers }) {
-						ProfileAvatar(profile)
+					key(profile.server.id, profile.user.id) {
+						ProfileCard(index, profile.displayName, profile.server.name.takeIf { multipleServers }, arriving = profile.user.id == arriving) {
+							ProfileAvatar(profile)
+						}
 					}
 				}
 				ProfileCard(profiles.size, stringResource(R.string.whos_watching_add_profile), null) { AddAvatar() }
 			}
 
 			menuFor?.let { RemoveMenu(it) }
+			if (panelOpen) AddProfilePanel(
+				viewModel = addProfileViewModel,
+				hasProfiles = profiles.isNotEmpty(),
+				userImage = { server, user -> startupViewModel.getUserImage(server, user) },
+				onLeave = { requireActivity().finish() },
+			)
 		}
 
-		LaunchedEffect(menuFor) {
+		LaunchedEffect(menuFor, panelOpen) {
 			// The OK release that ended a hold went to the menu, so the next OK press starts fresh.
-			if (menuFor == null) {
+			if (menuFor == null && !panelOpen) {
 				okHeld = false
 				focusRequester.requestFocus()
 			}
@@ -325,7 +356,9 @@ class WhosWatchingFragment : Fragment() {
 	}
 
 	@Composable
-	private fun ProfileCard(index: Int, name: String, serverName: String?, avatar: @Composable () -> Unit) {
+	private fun ProfileCard(index: Int, name: String, serverName: String?, arriving: Boolean = false, avatar: @Composable () -> Unit) {
+		val arrival = remember { Animatable(if (arriving) 0.4f else 1f) }
+		LaunchedEffect(arriving) { if (arriving) arrival.animateTo(1f, tween(MOVE_MILLIS, easing = SpringySettle)) }
 		val d = index - focus
 		val focused = d == 0
 		val isOpening = opening == index
@@ -371,7 +404,7 @@ class WhosWatchingFragment : Fragment() {
 			Box(
 				contentAlignment = Alignment.Center,
 				modifier = Modifier
-					.scale(scale)
+					.scale(scale * arrival.value)
 					// Room for the glow: while fading, the card is drawn on a layer clipped to its bounds.
 					.size(AVATAR + GLOW_ROOM)
 					.drawBehind {
@@ -440,8 +473,8 @@ class WhosWatchingFragment : Fragment() {
 	@Composable
 	private fun RemoveMenu(profile: Profile) {
 		val cancelFocus = remember { FocusRequester() }
-		BackHandler { menuFor = null }
-		Box(Modifier.fillMaxSize().background(Color(0xB804060E)), contentAlignment = Alignment.Center) {
+		OverlayBackHandler { menuFor = null }
+		Box(Modifier.fillMaxSize().onBackPress { menuFor = null }.background(Color(0xB804060E)), contentAlignment = Alignment.Center) {
 			Column(
 				verticalArrangement = Arrangement.spacedBy(12.dp),
 				modifier = Modifier
@@ -453,6 +486,9 @@ class WhosWatchingFragment : Fragment() {
 			) {
 				Text(profile.displayName, fontFamily = Jakarta, fontWeight = FontWeight.Bold, fontSize = 24.sp, color = Color.White)
 				Text(stringResource(R.string.whos_watching_remove_summary, profile.displayName), fontSize = 15.sp, color = Muted)
+				if (profiles.count { it.server.id == profile.server.id } == 1) {
+					Text(stringResource(R.string.whos_watching_remove_last_on_server, profile.server.name), fontSize = 15.sp, color = Muted)
+				}
 				Button(onClick = { remove(profile) }, modifier = Modifier.fillMaxWidth()) {
 					Text(stringResource(R.string.whos_watching_remove))
 				}
@@ -494,21 +530,18 @@ class WhosWatchingFragment : Fragment() {
 	private companion object {
 		const val MOVE_MILLIS = 600
 		const val OPEN_MILLIS = 420L
+		const val ARRIVE_MILLIS = 750L
 		const val CARD_SPACING = 230f
 		val AVATAR = 180.dp
 		val GLOW_ROOM = 120.dp
 		// The approved prototype's "springy settle": a slight overshoot as the profile lands.
 		val SpringySettle = CubicBezierEasing(0.22f, 1.25f, 0.36f, 1f)
-		val Night = Color(0xFF080C1D)
-		val Panel = Color(0xFF121A35)
-		val Line = Color(0xFF263056)
-		val Muted = Color(0xFFA2A8C6)
-		val Purple = Color(0xFFB27DFF)
-		val Cyan = Color(0xFF3CC4F5)
-		val Jakarta = FontFamily(
-			Font(R.font.plus_jakarta_sans, FontWeight.Medium, variationSettings = FontVariation.Settings(FontVariation.weight(500))),
-			Font(R.font.plus_jakarta_sans, FontWeight.Bold, variationSettings = FontVariation.Settings(FontVariation.weight(700))),
-			Font(R.font.plus_jakarta_sans, FontWeight.ExtraBold, variationSettings = FontVariation.Settings(FontVariation.weight(800))),
-		)
+		val Night = WhosWatchingStyle.Night
+		val Panel = WhosWatchingStyle.Panel
+		val Line = WhosWatchingStyle.Line
+		val Muted = WhosWatchingStyle.Muted
+		val Purple = WhosWatchingStyle.Purple
+		val Cyan = WhosWatchingStyle.Cyan
+		val Jakarta = WhosWatchingStyle.Jakarta
 	}
 }

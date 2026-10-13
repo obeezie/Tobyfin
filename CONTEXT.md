@@ -58,7 +58,15 @@ Jellyfin's code-based sign-in: the device shows a code and a signed-in phone or 
 The first screen after choosing a profile, made of rows.
 
 **Discovery**:
-The customizable set of rows on Home that a person can reorder, hide or add to, per account and device.
+The customizable set of rows on Home, chosen and ordered per account and device.
+
+**On Home**:
+The rows Discovery shows, in their chosen order. Every row is either On Home or in Add to Home.
+_Avoid_: shown, visible, enabled
+
+**Add to Home**:
+The rows not on Home that can be added: built-in rows taken off Home and the server's genres not added yet. Adding one puts it at the end of On Home.
+_Avoid_: more rows, hidden, removed, disabled
 
 **Row**:
 One horizontal shelf of items on Home.

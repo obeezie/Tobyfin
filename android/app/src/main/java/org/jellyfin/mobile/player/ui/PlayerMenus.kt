@@ -11,12 +11,15 @@ import androidx.annotation.StringRes
 import androidx.appcompat.widget.AppCompatImageView
 import androidx.appcompat.widget.AppCompatTextView
 import androidx.constraintlayout.widget.ConstraintLayout
+import androidx.core.view.MenuCompat
 import androidx.core.view.get
 import androidx.core.view.isVisible
 import androidx.core.view.size
 import androidx.core.view.updateLayoutParams
 import androidx.media3.ui.DefaultTimeBar
+import androidx.lifecycle.lifecycleScope
 import androidx.media3.ui.TimeBar
+import kotlinx.coroutines.launch
 import org.jellyfin.mobile.R
 import org.jellyfin.mobile.databinding.ExoPlayerControlViewBinding
 import org.jellyfin.mobile.databinding.FragmentPlayerBinding
@@ -24,6 +27,8 @@ import org.jellyfin.mobile.player.qualityoptions.QualityOptionsProvider
 import org.jellyfin.mobile.player.source.JellyfinMediaSource
 import org.jellyfin.mobile.player.source.LocalJellyfinMediaSource
 import org.jellyfin.mobile.player.source.RemoteJellyfinMediaSource
+import org.jellyfin.mobile.player.subtitle.SubtitleSearch
+import org.jellyfin.mobile.player.subtitle.SubtitleSearchRules
 import org.jellyfin.mobile.player.ui.playermenuhelper.PlayerMenuHelper
 import org.jellyfin.mobile.player.ui.playermenuhelper.SkipMediaSegmentButton
 import org.jellyfin.sdk.model.api.ChapterInfo
@@ -31,6 +36,7 @@ import org.jellyfin.sdk.model.api.MediaStream
 import org.koin.core.component.KoinComponent
 import org.koin.core.component.inject
 import java.util.Locale
+import java.util.UUID
 
 /**
  *  Provides a menu UI for audio, subtitle and video stream selection
@@ -73,6 +79,12 @@ class PlayerMenus(
 
     private var subtitleCount = 0
     private var subtitlesEnabled = false
+
+    private val subtitleSearch = SubtitleSearch()
+    private var currentMediaSource: JellyfinMediaSource? = null
+
+    /** Subtitle tracks a slow server added after playback resumed. Picking one restarts playback with it. */
+    private val readyLater = mutableMapOf<UUID, MutableList<MediaStream>>()
 
     private val trickplayHelper = TrickplayHelper(
         trickplayContainer,
@@ -117,7 +129,7 @@ class PlayerMenus(
             audioStreamsMenu.show()
         }
         subtitlesButton.setOnClickListener {
-            if (subtitleCount == 0) return@setOnClickListener
+            if (subtitleCount == 0 && !canFindSubtitles()) return@setOnClickListener
             fragment.suppressControllerAutoHide(true)
             subtitlesMenu.show()
         }
@@ -141,6 +153,12 @@ class PlayerMenus(
         }
 
         fragment.setPlayerMenuHelper(playerMenuHelper)
+
+        // Find other subtitles depends on the account's permission, which the server reports once.
+        fragment.lifecycleScope.launch {
+            subtitleSearch.loadAccount()
+            currentMediaSource?.let(::buildSubtitlesMenu)
+        }
     }
 
     fun onQueueItemChanged(mediaSource: JellyfinMediaSource, hasNext: Boolean) {
@@ -164,20 +182,8 @@ class PlayerMenus(
             mediaSource.selectedAudioStream,
         )
 
-        val subtitleStreams = mediaSource.subtitleStreams
-        val selectedSubtitleStream = mediaSource.selectedSubtitleStream
-        buildMenuItems(
-            subtitlesMenu.menu,
-            SUBTITLES_MENU_GROUP,
-            subtitleStreams,
-            selectedSubtitleStream,
-            true,
-        )
-        subtitlesMenu.menu.add(Menu.NONE, -100, Menu.NONE, R.string.subtitle_timing_title)
-        subtitleCount = subtitleStreams.size
-        subtitlesEnabled = selectedSubtitleStream != null
-
-        updateSubtitlesButton()
+        currentMediaSource = mediaSource
+        buildSubtitlesMenu(mediaSource)
 
         val height = videoStream?.height
         val width = videoStream?.width
@@ -211,6 +217,39 @@ class PlayerMenus(
             videoTracksInfo,
             audioTracksInfo,
         ).joinToString("\n\n")
+    }
+
+    /** Find other subtitles and Subtitle offset first, then a divider and the tracks (as in the Shield app). */
+    private fun buildSubtitlesMenu(mediaSource: JellyfinMediaSource) {
+        val menu = subtitlesMenu.menu
+        val subtitleStreams = mediaSource.subtitleStreams
+        val selectedSubtitleStream = mediaSource.selectedSubtitleStream
+        buildMenuItems(menu, SUBTITLES_MENU_GROUP, subtitleStreams, selectedSubtitleStream, showNone = true, order = 1)
+        readyLater[mediaSource.itemId].orEmpty()
+            .filter { new -> subtitleStreams.none { it.index == new.index } }
+            .forEach { stream ->
+                menu.add(SUBTITLES_MENU_GROUP, LATER + stream.index, 1, stream.displayTitle ?: stream.language ?: stream.title)
+            }
+        if (canFindSubtitles()) menu.add(SUBTITLE_TOOLS_GROUP, FIND_OTHER, 0, R.string.subtitle_search_menu)
+        menu.add(SUBTITLE_TOOLS_GROUP, OFFSET, 0, R.string.subtitle_timing_title)
+        MenuCompat.setGroupDividerEnabled(menu, true)
+        subtitleCount = subtitleStreams.size
+        subtitlesEnabled = selectedSubtitleStream != null
+        updateSubtitlesButton()
+    }
+
+    /** Downloaded videos can't take subtitles saved on the server, so only streamed ones can search. */
+    private fun canFindSubtitles(): Boolean {
+        val source = currentMediaSource as? RemoteJellyfinMediaSource ?: return false
+        return subtitleSearch.isAllowed() && SubtitleSearchRules.canSearch(source.item)
+    }
+
+    private fun findOtherSubtitles() {
+        val source = currentMediaSource as? RemoteJellyfinMediaSource ?: return
+        fragment.findOtherSubtitles(source, subtitleSearch) { track ->
+            readyLater.getOrPut(source.itemId) { mutableListOf() } += track
+            if (currentMediaSource?.itemId == source.itemId) buildSubtitlesMenu(source)
+        }
     }
 
     private fun updateLayoutConstraints(hasChapters: Boolean) {
@@ -264,9 +303,20 @@ class PlayerMenus(
 
     private fun createSubtitlesMenu() = PopupMenu(context, subtitlesButton).apply {
         setOnMenuItemClickListener { clickedItem ->
-            if (clickedItem.itemId == -100) {
-                fragment.showSubtitleTiming()
-                return@setOnMenuItemClickListener true
+            when {
+                clickedItem.itemId == OFFSET -> {
+                    fragment.showSubtitleTiming()
+                    return@setOnMenuItemClickListener true
+                }
+                clickedItem.itemId == FIND_OTHER -> {
+                    findOtherSubtitles()
+                    return@setOnMenuItemClickListener true
+                }
+                clickedItem.itemId >= LATER -> {
+                    val itemId = currentMediaSource?.itemId
+                    readyLater[itemId]?.firstOrNull { it.index == clickedItem.itemId - LATER }?.let(fragment::switchToNewSubtitles)
+                    return@setOnMenuItemClickListener true
+                }
             }
             // Immediately apply changes to the menu, necessary when direct playing
             // When transcoding, the updated media source will cause the menu to be rebuilt
@@ -355,16 +405,17 @@ class PlayerMenus(
         mediaStreams: List<MediaStream>,
         selectedStream: MediaStream?,
         showNone: Boolean = false,
+        order: Int = Menu.NONE,
     ) {
         menu.clear()
         val itemNone = when {
-            showNone -> menu.add(groupId, -1, Menu.NONE, fragment.getString(R.string.menu_item_none))
+            showNone -> menu.add(groupId, -1, order, fragment.getString(R.string.menu_item_none))
             else -> null
         }
         var selectedItem: MenuItem? = itemNone
         val menuItems = mediaStreams.map { mediaStream ->
             val title = mediaStream.displayTitle ?: "${mediaStream.language} (${mediaStream.codec})"
-            menu.add(groupId, mediaStream.index, Menu.NONE, title).also { item ->
+            menu.add(groupId, mediaStream.index, order, title).also { item ->
                 if (mediaStream === selectedStream) {
                     selectedItem = item
                 }
@@ -376,7 +427,7 @@ class PlayerMenus(
     }
 
     private fun updateSubtitlesButton() {
-        subtitlesButton.isVisible = subtitleCount > 0
+        subtitlesButton.isVisible = subtitleCount > 0 || canFindSubtitles()
         val stateSet = intArrayOf(android.R.attr.state_checked * if (subtitlesEnabled) 1 else -1)
         subtitlesButton.setImageState(stateSet, true)
     }
@@ -420,6 +471,12 @@ class PlayerMenus(
 
     companion object {
         private const val SUBTITLES_MENU_GROUP = 0
+        private const val SUBTITLE_TOOLS_GROUP = 5
+        private const val OFFSET = -100
+        private const val FIND_OTHER = -200
+
+        /** Menu ids at or above this are tracks that arrived after playback resumed. */
+        private const val LATER = 100_000
         private const val AUDIO_MENU_GROUP = 1
         private const val SPEED_MENU_GROUP = 2
         private const val QUALITY_MENU_GROUP = 3

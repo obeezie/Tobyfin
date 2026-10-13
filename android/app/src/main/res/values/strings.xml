@@ -180,7 +180,7 @@
     <string name="download_location_not_set_description">To download media, please select a folder where the files should be stored.</string>
     <string name="download_location_inaccessible">Download location inaccessible</string>
     <string name="download_location_inaccessible_description">The selected download location is no longer accessible. Please select a different folder to resume downloads.</string>
-    <string name="subtitle_timing_title">Subtitle timing</string>
+    <string name="subtitle_timing_title">Subtitle offset</string>
     <string name="subtitle_timing_help">Positive values show subtitles later; negative values show them earlier. Enter seconds (up to 10 minutes in either direction).</string>
     <string name="subtitle_timing_seconds">Subtitle offset in seconds</string>
     <string name="subtitle_timing_apply">Apply</string>

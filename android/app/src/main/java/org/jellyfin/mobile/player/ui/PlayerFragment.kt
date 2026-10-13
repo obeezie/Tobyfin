@@ -336,6 +336,41 @@ class PlayerFragment : Fragment(), BackPressInterceptor {
         playerView.hideController()
     }
 
+    /** Find other subtitles: search the server's subtitle providers, then switch to the chosen subtitles. */
+    fun findOtherSubtitles(
+        source: org.jellyfin.mobile.player.source.RemoteJellyfinMediaSource,
+        search: org.jellyfin.mobile.player.subtitle.SubtitleSearch,
+        onReadyLater: (MediaStream) -> Unit,
+    ) {
+        val item = source.item ?: return
+        playerView.hideController()
+        showFindOtherSubtitles(
+            context = requireContext(),
+            scope = lifecycleScope,
+            item = item,
+            mediaSource = source.sourceInfo,
+            search = search,
+            pause = viewModel::pause,
+            resume = viewModel::play,
+            onSwitch = ::switchToNewSubtitles,
+            onReadyLater = { track ->
+                onReadyLater(track)
+                requireContext().toast(R.string.subtitle_search_ready_later)
+            },
+        )
+    }
+
+    /**
+     * Restart at the same position with subtitles the server has just added. The subtitle offset goes back to 0,
+     * since it was set for the previous subtitles.
+     */
+    fun switchToNewSubtitles(track: MediaStream) {
+        lifecycleScope.launch {
+            viewModel.subtitleTiming.reset()
+            if (viewModel.queueManager.selectSubtitleStreamAndRestartPlayback(track)) viewModel.play()
+        }
+    }
+
     fun onSeekByOffset(offsetMs: Long) = viewModel.seekByOffset(offsetMs)
 
     fun onPreviousChapter() = viewModel.previousChapter()

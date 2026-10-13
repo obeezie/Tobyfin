@@ -1,4 +1,30 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="tobyfin_buffering">Buffering…</string>
+    <string name="subtitle_search_menu">Find other subtitles…</string>
+    <string name="subtitle_search_eyebrow">Subtitles</string>
+    <string name="subtitle_search_title">Find other subtitles</string>
+    <string name="subtitle_search_your_file">Your file</string>
+    <string name="subtitle_search_language">Language</string>
+    <string name="subtitle_search_searching">Searching for %1$s subtitles…</string>
+    <string name="subtitle_search_none">No %1$s subtitles found</string>
+    <string name="subtitle_search_none_summary">Try another language, or this server may have no subtitle source set up.</string>
+    <string name="subtitle_search_failed">Couldn\'t search</string>
+    <string name="subtitle_search_failed_summary">The server didn\'t answer. Go back and try again.</string>
+    <string name="subtitle_search_add_failed">Couldn\'t add those subtitles</string>
+    <string name="subtitle_search_add_failed_summary">The server couldn\'t download them. Try another result.</string>
+    <string name="subtitle_search_sdh">SDH</string>
+    <string name="subtitle_search_forced">Forced</string>
+    <string name="subtitle_search_machine_translated">Machine translated</string>
+    <string name="subtitle_search_downloads">%1$s downloads</string>
+    <string name="subtitle_search_hint">Pick one made for your file\'s release for the best sync. Tap the video to keep watching.</string>
+    <string name="subtitle_search_your_languages">Your languages</string>
+    <string name="subtitle_search_all_languages">All languages</string>
+    <string name="subtitle_search_loading_languages">Loading languages…</string>
+    <string name="subtitle_search_adding">Adding subtitles…</string>
+    <string name="subtitle_search_adding_summary">The server is saving them next to your file.</string>
+    <string name="subtitle_search_saved">Saved</string>
+    <string name="subtitle_search_saved_title">They\'ll appear in the subtitles menu shortly</string>
+    <string name="subtitle_search_saved_summary">The server is still adding them. Playback resumes now; pick them from the subtitles menu when they show up.</string>
+    <string name="subtitle_search_ready_later">New subtitles are ready. Pick them from the subtitles menu.</string>
 </resources>

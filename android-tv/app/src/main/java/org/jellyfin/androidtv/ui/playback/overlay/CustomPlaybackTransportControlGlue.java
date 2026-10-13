@@ -247,7 +247,7 @@ public class CustomPlaybackTransportControlGlue extends PlaybackTransportControl
             primaryActionsAdapter.add(fastForwardAction);
         }
 
-        if (playerAdapter.hasSubs()) {
+        if (playerAdapter.showSubtitleButton()) {
             primaryActionsAdapter.add(closedCaptionsAction);
         }
 
@@ -390,7 +390,7 @@ public class CustomPlaybackTransportControlGlue extends PlaybackTransportControl
 
         VideoPlayerAdapter playerAdapter = getPlayerAdapter();
 
-        if (playerAdapter.hasSubs() && keyCode == KeyEvent.KEYCODE_CAPTIONS) {
+        if (playerAdapter.showSubtitleButton() && keyCode == KeyEvent.KEYCODE_CAPTIONS) {
             closedCaptionsAction.handleClickAction(playbackController, getPlayerAdapter(), getContext(), v);
         }
         if (playerAdapter.hasMultiAudio() && keyCode == KeyEvent.KEYCODE_MEDIA_AUDIO_TRACK) {

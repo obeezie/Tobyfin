@@ -1,5 +1,8 @@
 package org.jellyfin.androidtv.ui.playback.overlay;
 
+import org.jellyfin.androidtv.ui.playback.subtitle.SubtitleSearch;
+import org.jellyfin.androidtv.ui.playback.subtitle.SubtitleSearchRules;
+
 import androidx.annotation.NonNull;
 import androidx.leanback.media.PlayerAdapter;
 
@@ -19,6 +22,7 @@ public class VideoPlayerAdapter extends PlayerAdapter {
     private final PlaybackController playbackController;
     private CustomPlaybackOverlayFragment customPlaybackOverlayFragment;
     private LeanbackOverlayFragment leanbackOverlayFragment;
+    private final SubtitleSearch subtitleSearch = new SubtitleSearch();
 
     VideoPlayerAdapter(PlaybackController playbackController, LeanbackOverlayFragment leanbackOverlayFragment) {
         this.playbackController = playbackController;
@@ -103,6 +107,11 @@ public class VideoPlayerAdapter extends PlayerAdapter {
 
     public boolean hasSubs() {
         return StreamHelper.getSubtitleStreams(playbackController.getCurrentMediaSource()).size() > 0;
+    }
+
+    /** Whether the CC button is worth showing: there are tracks, or other subtitles can be found for this video. */
+    public boolean showSubtitleButton() {
+        return hasSubs() || (subtitleSearch.isAllowed() && SubtitleSearchRules.INSTANCE.canSearch(playbackController.getCurrentlyPlayingItem()));
     }
 
     public boolean hasMultiAudio() {

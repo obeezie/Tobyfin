@@ -1,0 +1,136 @@
+// Tobyfin: Settings grouped into cards (prototype/tobyfin-menus-prototype.html).
+// Colors come from the active theme, so other themes still get a sensible look.
+.settingsMenu {
+    max-width: 640px;
+    margin: 0 auto;
+}
+
+.settingsMenuMe,
+.settingsMenuItem {
+    display: flex !important;
+    align-items: center;
+    gap: 12px;
+    width: 100%;
+    box-sizing: border-box;
+    margin: 0 !important;
+    color: inherit !important;
+    text-align: start;
+    text-decoration: none;
+    -webkit-tap-highlight-color: transparent;
+}
+
+.settingsMenuMe {
+    padding: 12px !important;
+    border-radius: 16px !important;
+    background: var(--jf-palette-background-paper);
+    border: 1px solid var(--jf-palette-divider);
+
+    .MuiAvatar-root {
+        width: 46px;
+        height: 46px;
+        font-size: 20px;
+        font-weight: 800;
+    }
+}
+
+.settingsMenuName {
+    font-size: 17px;
+    font-weight: 700;
+    color: var(--jf-palette-text-primary);
+}
+
+.settingsMenuLabel {
+    margin: 22px 6px 8px !important;
+    font-size: 11px !important;
+    font-weight: 600 !important;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--jf-palette-text-secondary);
+}
+
+.settingsMenuGroup:not(:has(.settingsMenuLabel)) {
+    margin-top: 22px;
+}
+
+.settingsMenuCard {
+    background: var(--jf-palette-background-paper);
+    border: 1px solid var(--jf-palette-divider);
+    border-radius: 16px;
+    overflow: hidden;
+}
+
+.settingsMenuItem {
+    position: relative;
+    padding: 11px 12px !important;
+    border-radius: 0 !important;
+    background: transparent !important;
+
+    // Divider between rows, starting after the icon tile.
+    & + &::before {
+        content: "";
+        position: absolute;
+        top: 0;
+        left: 60px;
+        right: 0;
+        border-top: 1px solid var(--jf-palette-divider);
+    }
+
+    &:active,
+    &:focus-visible {
+        background: var(--jf-palette-action-focus) !important;
+    }
+}
+
+@media (hover: hover) and (pointer: fine) {
+    .settingsMenuItem:hover,
+    .settingsMenuMe:hover {
+        background: var(--jf-palette-action-hover) !important;
+    }
+}
+
+.settingsMenuTile {
+    flex-shrink: 0;
+    width: 36px;
+    height: 36px;
+    border-radius: 10px;
+    display: grid !important;
+    place-items: center;
+    font-size: 20px !important;
+    background: var(--jf-palette-action-hover);
+    color: var(--jf-palette-text-primary);
+}
+
+.settingsMenuText {
+    display: flex;
+    flex-direction: column;
+    flex: 1;
+    min-width: 0;
+}
+
+.settingsMenuTitle {
+    font-size: 15px;
+    font-weight: 600;
+    color: var(--jf-palette-text-primary);
+}
+
+.settingsMenuDescription {
+    font-size: 12px;
+    color: var(--jf-palette-text-secondary);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.settingsMenuChevron {
+    flex-shrink: 0;
+    font-size: 20px !important;
+    color: var(--jf-palette-text-secondary);
+    opacity: 0.6;
+}
+
+.settingsMenuItem-danger {
+    .settingsMenuTitle,
+    .settingsMenuTile {
+        color: var(--jf-palette-error-main);
+    }
+}

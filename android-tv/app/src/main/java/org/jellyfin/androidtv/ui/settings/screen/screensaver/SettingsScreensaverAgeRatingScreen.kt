@@ -37,6 +37,7 @@ fun SettingsScreensaverAgeRatingScreen() {
 			ListButton(
 				headingContent = { Text(heading) },
 				trailingContent = { RadioButton(checked = screensaverAgeRatingMax == ageRating) },
+				selected = screensaverAgeRatingMax == ageRating,
 				onClick = {
 					screensaverAgeRatingMax = ageRating
 					router.back()

@@ -1,10 +1,10 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <!-- Brand and base colors -->
-    <color name="jellyfin_primary">#202020</color>
-    <color name="jellyfin_primary_dark">#101010</color>
+    <color name="jellyfin_primary">#080C1D</color>
+    <color name="jellyfin_primary_dark">#080C1D</color>
     <!-- Secondary -->
-    <color name="jellyfin_accent">#00a4dc</color>
+    <color name="jellyfin_accent">#3CC4F5</color>
 
     <!-- Launcher icon background -->
     <color name="ic_launcher_background">#030F2B</color>
@@ -13,7 +13,19 @@
     <color name="splash_fill">#fafafa</color>
 
     <!-- App colors -->
-    <color name="theme_background">#101010</color>
+    <color name="theme_background">#080C1D</color>
+
+    <!-- Tobyfin: navy with purple-to-cyan accents (prototype/tobyfin-menus-prototype.html) -->
+    <color name="tobyfin_panel">#121A35</color>
+    <color name="tobyfin_tile">#18213F</color>
+    <color name="tobyfin_line">#263056</color>
+    <color name="tobyfin_text">#EEF0FA</color>
+    <color name="tobyfin_muted">#A2A8C6</color>
+    <color name="tobyfin_faint">#6B7299</color>
+    <color name="tobyfin_switch_off">#2A3158</color>
+    <color name="tobyfin_knob_off">#8B92B8</color>
+    <color name="tobyfin_purple">#B27DFF</color>
+    <color name="tobyfin_cyan">#3CC4F5</color>
     <color name="playback_controls_background">#60000000</color>
     <color name="playback_info_background">#cc000000</color>
     <color name="playback_timebar_unplayed">#333333</color>

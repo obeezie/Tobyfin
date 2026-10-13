@@ -17,6 +17,7 @@ import org.jellyfin.androidtv.ui.navigation.focus.focusKey
 import org.jellyfin.androidtv.ui.settings.Routes
 import org.jellyfin.androidtv.ui.settings.compat.rememberPreference
 import org.jellyfin.androidtv.ui.settings.composable.SettingsColumn
+import org.jellyfin.androidtv.ui.settings.composable.SettingsValue
 import org.jellyfin.androidtv.util.AndroidVersion
 import org.koin.compose.koinInject
 
@@ -39,7 +40,7 @@ fun SettingsPlaybackCodecScreen() {
 
 			ListButton(
 				headingContent = { Text(stringResource(R.string.user_avc_level)) },
-				captionContent = { Text(stringResource(userAVCLevel.nameRes)) },
+				trailingContent = { SettingsValue(stringResource(userAVCLevel.nameRes)) },
 				onClick = { router.push(Routes.PLAYBACK_AVC_LEVEL) },
 				modifier = Modifier.focusKey(Routes.PLAYBACK_AVC_LEVEL)
 			)
@@ -50,7 +51,7 @@ fun SettingsPlaybackCodecScreen() {
 
 			ListButton(
 				headingContent = { Text(stringResource(R.string.user_hevc_level)) },
-				captionContent = { Text(stringResource(userHEVCLevel.nameRes)) },
+				trailingContent = { SettingsValue(stringResource(userHEVCLevel.nameRes)) },
 				onClick = { router.push(Routes.PLAYBACK_HEVC_LEVEL) },
 				modifier = Modifier.focusKey(Routes.PLAYBACK_HEVC_LEVEL)
 			)
@@ -62,7 +63,7 @@ fun SettingsPlaybackCodecScreen() {
 
 			ListButton(
 				headingContent = { Text(stringResource(format.nameRes)) },
-				captionContent = { Text(stringResource(mode.nameRes)) },
+				trailingContent = { SettingsValue(stringResource(mode.nameRes)) },
 				onClick = {
 					router.push(
 						route = Routes.PLAYBACK_BITSTREAM_AUDIO,

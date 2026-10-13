@@ -37,6 +37,7 @@ fun SettingsPlaybackRefreshRateSwitchingBehaviorScreen() {
 			ListButton(
 				headingContent = { Text(stringResource(entry.nameRes)) },
 				trailingContent = { RadioButton(checked = refreshRateSwitchingBehavior == entry) },
+				selected = refreshRateSwitchingBehavior == entry,
 				onClick = {
 					refreshRateSwitchingBehavior = entry
 					router.back()

@@ -41,6 +41,7 @@ fun SettingsPlaybackMaxBitrateScreen() {
 			ListButton(
 				headingContent = { Text(label) },
 				trailingContent = { RadioButton(checked = maxBitrate == value) },
+				selected = maxBitrate == value,
 				onClick = {
 					maxBitrate = value
 					router.back()

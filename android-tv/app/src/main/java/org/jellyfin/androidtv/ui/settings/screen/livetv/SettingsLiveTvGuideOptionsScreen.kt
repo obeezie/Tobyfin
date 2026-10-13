@@ -18,6 +18,7 @@ import org.jellyfin.androidtv.ui.navigation.focus.focusKey
 import org.jellyfin.androidtv.ui.settings.Routes
 import org.jellyfin.androidtv.ui.settings.compat.rememberPreference
 import org.jellyfin.androidtv.ui.settings.composable.SettingsColumn
+import org.jellyfin.androidtv.ui.settings.composable.SettingsValue
 import org.koin.compose.koinInject
 
 @Composable
@@ -46,7 +47,7 @@ fun SettingsLiveTvGuideOptionsScreen() {
 
 			ListButton(
 				headingContent = { Text(stringResource(R.string.lbl_sort_by)) },
-				captionContent = { Text(stringResource(LiveTvChannelOrder.fromString(channelOrder).nameRes)) },
+				trailingContent = { SettingsValue(stringResource(LiveTvChannelOrder.fromString(channelOrder).nameRes)) },
 				onClick = { router.push(Routes.LIVETV_GUIDE_CHANNEL_ORDER) },
 				modifier = Modifier.focusKey(Routes.LIVETV_GUIDE_CHANNEL_ORDER)
 			)
@@ -74,7 +75,7 @@ fun SettingsLiveTvGuideOptionsScreen() {
 			)
 		}
 
-		item { ListSection(headingContent = { Text(stringResource(R.string.lbl_show_indicators)) }) }
+		item { ListSection(headingContent = { Text(stringResource(R.string.lbl_show_indicators).uppercase()) }) }
 
 		items(indicators) { (preference, label) ->
 			var enabled by preference

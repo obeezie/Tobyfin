@@ -13,25 +13,27 @@ import androidx.compose.ui.unit.dp
 fun AppTheme(content: @Composable () -> Unit) {
     val colors = remember {
         @Suppress("MagicNumber")
+        // Tobyfin: dark navy with purple-to-cyan accents (prototype/tobyfin-menus-prototype.html).
         darkColors(
-            primary = Color(0xFF00A4DC),
-            primaryVariant = Color(0xFF202020),
-            background = Color(0xFF101010),
-            surface = Color(0xFF363636),
-            error = Color(0xFFCF6679),
-            onPrimary = Color.White,
+            primary = Color(0xFF3CC4F5),
+            primaryVariant = Color(0xFF080C1D),
+            secondary = Color(0xFFB27DFF),
+            background = Color(0xFF080C1D),
+            surface = Color(0xFF121A35),
+            error = Color(0xFFFF8A8A),
+            onPrimary = Color(0xFF0B1022),
             onSecondary = Color.White,
-            onBackground = Color.White,
-            onSurface = Color.White,
+            onBackground = Color(0xFFEEF0FA),
+            onSurface = Color(0xFFEEF0FA),
             onError = Color.White,
         )
     }
     MaterialTheme(
         colors = colors,
         shapes = Shapes(
-            small = RoundedCornerShape(4.dp),
-            medium = RoundedCornerShape(8.dp),
-            large = RoundedCornerShape(0.dp),
+            small = RoundedCornerShape(10.dp),
+            medium = RoundedCornerShape(16.dp),
+            large = RoundedCornerShape(20.dp),
         ),
         content = content,
     )

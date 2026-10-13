@@ -16,6 +16,7 @@ import org.jellyfin.androidtv.ui.navigation.focus.focusKey
 import org.jellyfin.androidtv.ui.settings.Routes
 import org.jellyfin.androidtv.ui.settings.compat.rememberPreference
 import org.jellyfin.androidtv.ui.settings.composable.SettingsColumn
+import org.jellyfin.androidtv.ui.settings.composable.SettingsValue
 import org.koin.compose.koinInject
 
 @Composable
@@ -51,7 +52,7 @@ fun SettingsScreensaverScreen() {
 
 			ListButton(
 				headingContent = { Text(stringResource(R.string.pref_screensaver_inapp_timeout)) },
-				captionContent = { Text(caption) },
+				trailingContent = { SettingsValue(caption) },
 				onClick = { router.push(Routes.CUSTOMIZATION_SCREENSAVER_TIMEOUT) },
 				modifier = Modifier.focusKey(Routes.CUSTOMIZATION_SCREENSAVER_TIMEOUT)
 			)
@@ -77,7 +78,7 @@ fun SettingsScreensaverScreen() {
 
 			ListButton(
 				headingContent = { Text(stringResource(R.string.pref_screensaver_ageratingmax)) },
-				captionContent = { Text(caption) },
+				trailingContent = { SettingsValue(caption) },
 				onClick = { router.push(Routes.CUSTOMIZATION_SCREENSAVER_AGE_RATING) },
 				modifier = Modifier.focusKey(Routes.CUSTOMIZATION_SCREENSAVER_AGE_RATING)
 			)

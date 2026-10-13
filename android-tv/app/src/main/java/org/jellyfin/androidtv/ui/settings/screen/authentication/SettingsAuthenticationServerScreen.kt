@@ -64,7 +64,7 @@ fun SettingsAuthenticationServerScreen(serverId: UUID) {
 		}
 
 		if (!users.isNullOrEmpty()) {
-			item { ListSection(headingContent = { Text(stringResource(R.string.pref_accounts)) }) }
+			item { ListSection(headingContent = { Text(stringResource(R.string.pref_accounts).uppercase()) }) }
 
 			items(users) { user ->
 				ListButton(
@@ -104,7 +104,7 @@ fun SettingsAuthenticationServerScreen(serverId: UUID) {
 			}
 		}
 
-		item { ListSection(headingContent = { Text(stringResource(R.string.lbl_server)) }) }
+		item { ListSection(headingContent = { Text(stringResource(R.string.lbl_server).uppercase()) }) }
 
 		item {
 			ListButton(

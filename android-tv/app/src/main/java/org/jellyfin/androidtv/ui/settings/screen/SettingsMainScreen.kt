@@ -28,15 +28,20 @@ fun SettingsMainScreen() {
 			)
 		}
 
-        item {
-            ListButton(headingContent = { Text("Customize Discovery") },
-                onClick = { router.push(Routes.DISCOVERY) },
-                modifier = Modifier.focusKey(Routes.DISCOVERY))
-        }
+		item {
+			ListButton(
+				leadingContent = { Icon(painterResource(R.drawable.ic_house_edit), contentDescription = null) },
+				headingContent = { Text("Customize Discovery") },
+				captionContent = { Text("Your Home rows") },
+				onClick = { router.push(Routes.DISCOVERY) },
+				modifier = Modifier.focusKey(Routes.DISCOVERY),
+			)
+		}
 		item {
 			ListButton(
 				leadingContent = { Icon(painterResource(R.drawable.ic_users), contentDescription = null) },
 				headingContent = { Text(stringResource(R.string.pref_login)) },
+				captionContent = { Text("Servers, users, auto sign-in") },
 				onClick = { router.push(Routes.AUTHENTICATION) },
 				modifier = Modifier.focusKey(Routes.AUTHENTICATION),
 			)
@@ -46,6 +51,7 @@ fun SettingsMainScreen() {
 			ListButton(
 				leadingContent = { Icon(painterResource(R.drawable.ic_adjust), contentDescription = null) },
 				headingContent = { Text(stringResource(R.string.pref_customization)) },
+				captionContent = { Text("Theme, clock, Home") },
 				onClick = { router.push(Routes.CUSTOMIZATION) },
 				modifier = Modifier.focusKey(Routes.CUSTOMIZATION),
 			)
@@ -56,6 +62,7 @@ fun SettingsMainScreen() {
 			ListButton(
 				leadingContent = { Icon(painterResource(R.drawable.ic_photos), contentDescription = null) },
 				headingContent = { Text(stringResource(R.string.pref_screensaver)) },
+				captionContent = { Text("When the TV is idle") },
 				onClick = { router.push(Routes.CUSTOMIZATION_SCREENSAVER) },
 				modifier = Modifier.focusKey(Routes.CUSTOMIZATION_SCREENSAVER),
 			)
@@ -65,6 +72,7 @@ fun SettingsMainScreen() {
 			ListButton(
 				leadingContent = { Icon(painterResource(R.drawable.ic_next), contentDescription = null) },
 				headingContent = { Text(stringResource(R.string.pref_playback)) },
+				captionContent = { Text("Player, Next up, subtitles") },
 				onClick = { router.push(Routes.PLAYBACK) },
 				modifier = Modifier.focusKey(Routes.PLAYBACK),
 			)
@@ -74,6 +82,7 @@ fun SettingsMainScreen() {
 			ListButton(
 				leadingContent = { Icon(painterResource(R.drawable.ic_error), contentDescription = null) },
 				headingContent = { Text(stringResource(R.string.pref_telemetry_category)) },
+				captionContent = { Text("Send crash logs") },
 				onClick = { router.push(Routes.TELEMETRY) },
 				modifier = Modifier.focusKey(Routes.TELEMETRY),
 			)
@@ -84,6 +93,7 @@ fun SettingsMainScreen() {
 			ListButton(
 				leadingContent = { Icon(painterResource(R.drawable.ic_jellyfin), contentDescription = null) },
 				headingContent = { Text(stringResource(R.string.pref_about_title)) },
+				captionContent = { Text("Version and licenses") },
 				onClick = { router.push(Routes.ABOUT) },
 				modifier = Modifier.focusKey(Routes.ABOUT),
 			)

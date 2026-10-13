@@ -1,5 +1,10 @@
+import DashboardIcon from '@mui/icons-material/Dashboard';
+import Download from '@mui/icons-material/Download';
+import Edit from '@mui/icons-material/Edit';
 import Favorite from '@mui/icons-material/Favorite';
 import Home from '@mui/icons-material/Home';
+import Logout from '@mui/icons-material/Logout';
+import Settings from '@mui/icons-material/Settings';
 import Divider from '@mui/material/Divider';
 import Icon from '@mui/material/Icon';
 import List from '@mui/material/List';
@@ -11,12 +16,16 @@ import ListSubheader from '@mui/material/ListSubheader';
 import React from 'react';
 import { useLocation } from 'react-router-dom';
 
+import { appHost } from 'components/apphost';
 import ListItemLink from 'components/ListItemLink';
 import { appRouter } from 'components/router/appRouter';
 import { useUserViews } from 'hooks/api/useUserViews';
 import { useApi } from 'hooks/useApi';
 import { useWebConfig } from 'hooks/useWebConfig';
 import globalize from 'lib/globalize';
+import { AppFeature } from 'constants/appFeature';
+import shell from 'scripts/shell';
+import { confirmLogout } from 'utils/confirmLogout';
 
 import LibraryIcon from '../LibraryIcon';
 import DrawerHeaderLink from './DrawerHeaderLink';
@@ -53,6 +62,16 @@ const MainDrawerContent = () => {
                         <ListItemText primary={globalize.translate('Favorites')} />
                     </ListItemLink>
                 </ListItem>
+                {appHost.supports(AppFeature.DownloadManagement) && (
+                    <ListItem disablePadding>
+                        <ListItemButton onClick={shell.openDownloadManager}>
+                            <ListItemIcon>
+                                <Download />
+                            </ListItemIcon>
+                            <ListItemText primary={globalize.translate('DownloadManager')} />
+                        </ListItemButton>
+                    </ListItem>
+                )}
             </List>
 
             {/* CUSTOM LINKS */}
@@ -109,6 +128,65 @@ const MainDrawerContent = () => {
                     </List>
                 </>
             )}
+
+            {/* Tobyfin: admin links and the account's own links, as in the account menu */}
+            {user?.Policy?.IsAdministrator && (
+                <>
+                    <Divider />
+                    <List
+                        aria-labelledby='admin-subheader'
+                        subheader={
+                            <ListSubheader component='div' id='admin-subheader'>
+                                {globalize.translate('HeaderAdmin')}
+                            </ListSubheader>
+                        }
+                    >
+                        <ListItem disablePadding>
+                            <ListItemLink to='/dashboard'>
+                                <ListItemIcon>
+                                    <DashboardIcon />
+                                </ListItemIcon>
+                                <ListItemText primary={globalize.translate('TabDashboard')} />
+                            </ListItemLink>
+                        </ListItem>
+                        <ListItem disablePadding>
+                            <ListItemLink to='/metadata'>
+                                <ListItemIcon>
+                                    <Edit />
+                                </ListItemIcon>
+                                <ListItemText primary={globalize.translate('MetadataManager')} />
+                            </ListItemLink>
+                        </ListItem>
+                    </List>
+                </>
+            )}
+
+            <Divider />
+            <List
+                aria-labelledby='you-subheader'
+                subheader={
+                    <ListSubheader component='div' id='you-subheader'>
+                        You
+                    </ListSubheader>
+                }
+            >
+                <ListItem disablePadding>
+                    <ListItemLink to='/mypreferencesmenu'>
+                        <ListItemIcon>
+                            <Settings />
+                        </ListItemIcon>
+                        <ListItemText primary={globalize.translate('Settings')} />
+                    </ListItemLink>
+                </ListItem>
+                <ListItem disablePadding>
+                    <ListItemButton className='drawerSignOut' onClick={confirmLogout}>
+                        <ListItemIcon>
+                            <Logout />
+                        </ListItemIcon>
+                        <ListItemText primary={globalize.translate('ButtonSignOut')} />
+                    </ListItemButton>
+                </ListItem>
+            </List>
         </>
     );
 };

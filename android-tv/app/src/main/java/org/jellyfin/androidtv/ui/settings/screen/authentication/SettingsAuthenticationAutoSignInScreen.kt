@@ -59,6 +59,7 @@ fun SettingsAuthenticationAutoSignInScreen() {
 				headingContent = { Text(stringResource(R.string.user_picker_ask_title)) },
 				captionContent = { Text(stringResource(R.string.user_picker_ask_summary)) },
 				trailingContent = { RadioButton(checked = autoLoginUserBehavior == UserSelectBehavior.ASK) },
+				selected = autoLoginUserBehavior == UserSelectBehavior.ASK,
 				onClick = {
 					autoLoginUserBehavior = UserSelectBehavior.ASK
 					router.back()
@@ -73,6 +74,7 @@ fun SettingsAuthenticationAutoSignInScreen() {
 				headingContent = { Text(stringResource(R.string.user_picker_disable_title)) },
 				captionContent = { Text(stringResource(R.string.user_picker_disable_summary)) },
 				trailingContent = { RadioButton(checked = autoLoginUserBehavior == UserSelectBehavior.DISABLED) },
+				selected = autoLoginUserBehavior == UserSelectBehavior.DISABLED,
 				onClick = {
 					autoLoginUserBehavior = UserSelectBehavior.DISABLED
 					router.back()
@@ -87,6 +89,7 @@ fun SettingsAuthenticationAutoSignInScreen() {
 				headingContent = { Text(stringResource(R.string.user_picker_last_user_title)) },
 				captionContent = { Text(stringResource(R.string.user_picker_last_user_summary)) },
 				trailingContent = { RadioButton(checked = autoLoginUserBehavior == UserSelectBehavior.LAST_USER) },
+				selected = autoLoginUserBehavior == UserSelectBehavior.LAST_USER,
 				onClick = {
 					autoLoginUserBehavior = UserSelectBehavior.LAST_USER
 					router.back()
@@ -97,7 +100,7 @@ fun SettingsAuthenticationAutoSignInScreen() {
 		}
 
 		for (server in storedServers) {
-			item { ListSection(headingContent = { Text(server.name) }) }
+			item { ListSection(headingContent = { Text(server.name.uppercase()) }) }
 
 			val users = serverUserRepository.getStoredServerUsers(server)
 			val serverId = server.id.toString()
@@ -115,6 +118,7 @@ fun SettingsAuthenticationAutoSignInScreen() {
 					},
 					headingContent = { Text(user.name) },
 					trailingContent = { RadioButton(checked = autoLoginUserBehavior == UserSelectBehavior.SPECIFIC_USER && autoLoginServerId == serverId && autoLoginUserId == userId) },
+					selected = autoLoginUserBehavior == UserSelectBehavior.SPECIFIC_USER && autoLoginServerId == serverId && autoLoginUserId == userId,
 					onClick = {
 						autoLoginUserBehavior = UserSelectBehavior.SPECIFIC_USER
 						autoLoginServerId = serverId

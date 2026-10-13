@@ -19,6 +19,7 @@ import org.jellyfin.androidtv.ui.navigation.focus.focusKey
 import org.jellyfin.androidtv.ui.settings.Routes
 import org.jellyfin.androidtv.ui.settings.compat.rememberPreference
 import org.jellyfin.androidtv.ui.settings.composable.SettingsColumn
+import org.jellyfin.androidtv.ui.settings.composable.SettingsValue
 import org.koin.compose.koinInject
 import java.util.UUID
 
@@ -45,7 +46,7 @@ fun SettingsLibrariesDisplayScreen(itemId: UUID, displayPreferencesId: String) {
 
 			ListButton(
 				headingContent = { Text(stringResource(R.string.lbl_image_size)) },
-				captionContent = { Text(stringResource(posterSize.nameRes)) },
+				trailingContent = { SettingsValue(stringResource(posterSize.nameRes)) },
 				onClick = {
 					router.push(
 						Routes.LIBRARIES_DISPLAY_IMAGE_SIZE,
@@ -61,7 +62,7 @@ fun SettingsLibrariesDisplayScreen(itemId: UUID, displayPreferencesId: String) {
 
 			ListButton(
 				headingContent = { Text(stringResource(R.string.lbl_image_type)) },
-				captionContent = { Text(stringResource(imageType.nameRes)) },
+				trailingContent = { SettingsValue(stringResource(imageType.nameRes)) },
 				onClick = {
 					router.push(
 						Routes.LIBRARIES_DISPLAY_IMAGE_TYPE,
@@ -77,7 +78,7 @@ fun SettingsLibrariesDisplayScreen(itemId: UUID, displayPreferencesId: String) {
 
 			ListButton(
 				headingContent = { Text(stringResource(R.string.grid_direction)) },
-				captionContent = { Text(stringResource(gridDirection.nameRes)) },
+				trailingContent = { SettingsValue(stringResource(gridDirection.nameRes)) },
 				onClick = {
 					router.push(
 						Routes.LIBRARIES_DISPLAY_GRID,

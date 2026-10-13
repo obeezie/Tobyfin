@@ -48,6 +48,7 @@ fun SettingsHomeSectionScreen(index: Int) {
 			ListButton(
 				headingContent = { Text(stringResource(entry.nameRes)) },
 				trailingContent = { RadioButton(checked = sectionType == entry) },
+				selected = sectionType == entry,
 				onClick = {
 					sectionType = entry
 					router.back()

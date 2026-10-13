@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Tobyfin: switch track, filled with the purple-to-cyan gradient when on. -->
+<selector xmlns:android="http://schemas.android.com/apk/res/android">
+    <item android:state_checked="true">
+        <shape android:shape="rectangle">
+            <corners android:radius="11dp" />
+            <size android:width="38dp" android:height="22dp" />
+            <gradient android:angle="0" android:startColor="@color/tobyfin_purple" android:endColor="@color/tobyfin_cyan" />
+        </shape>
+    </item>
+    <item>
+        <shape android:shape="rectangle">
+            <corners android:radius="11dp" />
+            <size android:width="38dp" android:height="22dp" />
+            <solid android:color="@color/tobyfin_switch_off" />
+        </shape>
+    </item>
+</selector>

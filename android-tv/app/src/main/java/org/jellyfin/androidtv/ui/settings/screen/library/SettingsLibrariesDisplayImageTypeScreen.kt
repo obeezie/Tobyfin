@@ -42,6 +42,7 @@ fun SettingsLibrariesDisplayImageTypeScreen(itemId: UUID, displayPreferencesId: 
 			ListButton(
 				headingContent = { Text(stringResource(entry.nameRes)) },
 				trailingContent = { RadioButton(checked = imageType == entry) },
+				selected = imageType == entry,
 				onClick = {
 					imageType = entry
 					router.back()

@@ -37,6 +37,7 @@ fun SettingsPlaybackResumeSubtractDurationScreen() {
 			ListButton(
 				headingContent = { Text(label) },
 				trailingContent = { RadioButton(checked = resumeSubtractDuration == value) },
+				selected = resumeSubtractDuration == value,
 				onClick = {
 					resumeSubtractDuration = value
 					router.back()

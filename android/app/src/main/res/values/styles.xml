@@ -16,8 +16,31 @@
         <item name="postSplashScreenTheme">@style/AppTheme</item>
     </style>
 
-    <!-- Settings theme -->
-    <style name="AppTheme.Settings" />
+    <!-- Settings theme: Tobyfin navy, switches with the gradient track, rounded dialogs -->
+    <style name="AppTheme.Settings">
+        <item name="android:textColorPrimary">@color/tobyfin_text</item>
+        <item name="android:textColorSecondary">@color/tobyfin_muted</item>
+        <item name="colorControlActivated">@color/tobyfin_cyan</item>
+        <item name="colorControlNormal">@color/tobyfin_faint</item>
+        <item name="switchStyle">@style/Tobyfin.Switch</item>
+        <item name="alertDialogTheme">@style/Tobyfin.Dialog</item>
+    </style>
+
+    <style name="Tobyfin.Switch" parent="Widget.AppCompat.CompoundButton.Switch">
+        <item name="track">@drawable/tobyfin_switch_track</item>
+        <item name="android:thumb">@drawable/tobyfin_switch_thumb</item>
+        <item name="trackTint">@null</item>
+        <item name="thumbTint">@null</item>
+        <item name="switchMinWidth">38dp</item>
+    </style>
+
+    <style name="Tobyfin.Dialog" parent="ThemeOverlay.AppCompat.Dialog.Alert">
+        <item name="android:windowBackground">@drawable/tobyfin_dialog_background</item>
+        <item name="colorAccent">@color/tobyfin_cyan</item>
+        <item name="colorControlActivated">@color/tobyfin_cyan</item>
+        <item name="android:textColorPrimary">@color/tobyfin_text</item>
+        <item name="android:textColorSecondary">@color/tobyfin_muted</item>
+    </style>
 
     <!-- Theme Overlays -->
     <style name="ThemeOverlay.App.BackButton" parent="">

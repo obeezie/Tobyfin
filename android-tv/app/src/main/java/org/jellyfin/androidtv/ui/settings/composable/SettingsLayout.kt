@@ -1,6 +1,7 @@
 package org.jellyfin.androidtv.ui.settings.composable
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.height
@@ -15,9 +16,10 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.focus.focusRestorer
 import androidx.compose.ui.unit.dp
-import org.jellyfin.androidtv.ui.base.JellyfinTheme
+import org.jellyfin.androidtv.ui.base.TobyfinStyle
 import org.jellyfin.androidtv.ui.base.LocalShapes
 import org.jellyfin.design.Tokens
 
@@ -30,7 +32,9 @@ fun SettingsLayout(
 		modifier = modifier
 			.padding(Tokens.Space.spaceMd)
 			.clip(LocalShapes.current.large)
-			.background(JellyfinTheme.colorScheme.surface)
+			// Tobyfin: the same navy as Customize Discovery, so no gray strip shows above it.
+			.background(Brush.verticalGradient(listOf(TobyfinStyle.PanelTop, TobyfinStyle.PanelBottom)))
+			.border(1.dp, TobyfinStyle.Line, LocalShapes.current.large)
 			.then(if (LocalRouter.current.backStack.lastOrNull()?.route == Routes.DISCOVERY) Modifier.fillMaxWidth() else Modifier.width(350.dp))
 			.fillMaxHeight()
 			.focusRestorer(),

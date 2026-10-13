@@ -40,6 +40,7 @@ fun SettingsPlaybackHEVCLevelScreen() {
 			ListButton(
 				headingContent = { Text(stringResource(HEVCLevel.AUTO.nameRes)) },
 				trailingContent = { RadioButton(checked = userHEVCLevel == HEVCLevel.AUTO) },
+				selected = userHEVCLevel == HEVCLevel.AUTO,
 				onClick = {
 					userHEVCLevel = HEVCLevel.AUTO
 					router.back()
@@ -49,12 +50,13 @@ fun SettingsPlaybackHEVCLevelScreen() {
 			)
 		}
 
-		item { ListSection(headingContent = { Text(stringResource(R.string.codec_level_manual)) }) }
+		item { ListSection(headingContent = { Text(stringResource(R.string.codec_level_manual).uppercase()) }) }
 
 		items(manualOptions) { level ->
 			ListButton(
 				headingContent = { Text(stringResource(level.nameRes)) },
 				trailingContent = { RadioButton(checked = userHEVCLevel == level) },
+				selected = userHEVCLevel == level,
 				onClick = {
 					userHEVCLevel = level
 					router.back()

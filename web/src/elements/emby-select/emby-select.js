@@ -22,6 +22,11 @@ function enableNativeMenu() {
         return true;
     }
 
+    // Tobyfin: phones get the app's own bottom-sheet picker instead of the system dialog.
+    if (layoutManager.mobile) {
+        return false;
+    }
+
     return !layoutManager.tv;
 }
 
@@ -40,7 +45,8 @@ function showActionSheet(select) {
 
     actionsheet.show({
         items: select.options,
-        positionTo: select,
+        positionTo: layoutManager.mobile ? null : select,
+        dialogClass: layoutManager.mobile ? 'actionSheet-bottom' : undefined,
         title: title
 
     }).then(function (value) {

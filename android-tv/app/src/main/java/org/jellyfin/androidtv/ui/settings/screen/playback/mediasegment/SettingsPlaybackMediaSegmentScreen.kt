@@ -37,6 +37,7 @@ fun SettingsPlaybackMediaSegmentScreen(
 			ListButton(
 				headingContent = { Text(stringResource(entry.nameRes)) },
 				trailingContent = { RadioButton(checked = action == entry) },
+				selected = action == entry,
 				onClick = {
 					mediaSegmentRepository.setDefaultSegmentTypeAction(segmentType, entry)
 					router.back()

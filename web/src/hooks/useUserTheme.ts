@@ -1,7 +1,7 @@
 import { useThemes } from './useThemes';
 import { useUserSettings } from './useUserSettings';
 
-export const FALLBACK_THEME_ID = 'dark';
+export const FALLBACK_THEME_ID = 'tobyfin';
 
 export function useUserTheme() {
     const { theme, dashboardTheme } = useUserSettings();

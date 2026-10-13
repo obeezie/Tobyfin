@@ -42,6 +42,7 @@ fun SettingsLibrariesDisplayGridScreen(itemId: UUID, displayPreferencesId: Strin
 			ListButton(
 				headingContent = { Text(stringResource(entry.nameRes)) },
 				trailingContent = { RadioButton(checked = gridDirection == entry) },
+				selected = gridDirection == entry,
 				onClick = {
 					gridDirection = entry
 					router.back()

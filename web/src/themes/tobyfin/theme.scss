@@ -1,0 +1,807 @@
+/* Tobyfin: dark navy with purple-to-cyan accents (prototype/tobyfin-menus-prototype.html). */
+
+/* This file restyles many unrelated components, grouped by screen rather than by specificity. */
+/* stylelint-disable no-descending-specificity */
+$night: #080c1d;
+$panel: #121a35;
+$panel-2: #18213f;
+$row-focus: #26305e;
+$tap: #1c2550;
+$field: #0c1229;
+$fg: #eef0fa;
+$muted: #a2a8c6;
+$faint: #6b7299;
+$line: #263056;
+$purple: #b27dff;
+$cyan: #3cc4f5;
+$danger: #ff8a8a;
+$on-accent: #0b1022;
+$gradient: linear-gradient(135deg, $purple, $cyan);
+$gradient-row: linear-gradient(90deg, rgba(178, 125, 255, 0.22), rgba(60, 196, 245, 0.1));
+$display: "Plus Jakarta Sans", "Noto Sans", sans-serif;
+
+@use "../_base/theme" with (
+    // Theme options
+    $dark: true,
+    $rounded-person-cards: false,
+
+    // Color palette
+    $background-default: $night,
+    $background-paper: $panel,
+    $primary-main: $cyan,
+    $primary-dark: #1fa3d6,
+    $primary-light: #7dd8f8,
+    $primary-hover: rgba(60, 196, 245, 0.16),
+    $primary-contrastText: $on-accent,
+    $secondary-main: $purple,
+    $secondary-contrastText: $on-accent,
+    $error-main: $danger,
+    $error-contrastText: #2a0b10,
+    $text-primary: $fg,
+    $text-secondary: $muted,
+    $action-focus: $row-focus,
+    $action-hover: rgba(60, 196, 245, 0.08),
+    $divider: $line,
+    // Components
+    $appBar-defaultBg: $night,
+    $appBar-transparentBg: rgba(8, 12, 29, 0.55),
+    $filledInput-bg: $field,
+    $filledInput-borderColor: $line,
+    $card-borderRadius: 0.6em,
+    $button-inheritContainedBg: $panel-2,
+    $button-inheritContainedHoverBg: $row-focus,
+    $snackbarContent-bg: #2b3157,
+    $snackbarContent-color: $fg
+);
+
+@font-face {
+    font-family: "Plus Jakarta Sans";
+    font-style: normal;
+    font-weight: 200 800;
+    font-display: swap;
+    src: url(PlusJakartaSans.ttf) format("truetype");
+}
+
+:root {
+    color-scheme: dark;
+}
+
+* {
+    scrollbar-color: $line $night;
+}
+
+/* ---------- Page and headings ---------- */
+html,
+body {
+    background-color: $night;
+}
+
+.backgroundContainer:not(.withBackdrop) {
+    background-color: $night;
+    background-image:
+        radial-gradient(60% 40% at 10% 0%, rgba(178, 125, 255, 0.12), transparent 70%),
+        radial-gradient(50% 30% at 100% 100%, rgba(60, 196, 245, 0.08), transparent 70%);
+    background-attachment: fixed;
+}
+
+h1,
+h2,
+h3,
+.pageTitle,
+.sectionTitle,
+.dialogHeaderTitle,
+.formDialogHeaderTitle,
+.MuiTypography-h1,
+.MuiTypography-h2,
+.MuiTypography-h3,
+.MuiTypography-h4,
+.MuiTypography-h5,
+.MuiTypography-h6 {
+    font-family: $display !important;
+    font-weight: 700;
+}
+
+.pageTitle {
+    font-weight: 700 !important;
+}
+
+/* ---------- Buttons ---------- */
+.button-submit,
+.userPreferencesPage .MuiButton-containedPrimary {
+    background: $gradient !important;
+    color: $on-accent !important;
+    font-family: $display;
+    font-weight: 700 !important;
+    border-radius: 14px !important;
+
+    &:focus,
+    &:hover {
+        filter: brightness(1.08);
+    }
+}
+
+.raised,
+.fab,
+a[data-role="button"] {
+    border-radius: 12px;
+}
+
+.button-delete {
+    border-radius: 14px;
+}
+
+/* ---------- Settings pages: cards, rows, switches ---------- */
+.userPreferencesPage:not(.settingsMenuPage) {
+    .settingsContainer,
+    .readOnlyContent,
+    form {
+        max-width: 640px;
+    }
+
+    // Legacy pages: each section becomes a card, its title a small label above it.
+    .verticalSection {
+        background: $panel;
+        border: 1px solid $line;
+        border-radius: 16px;
+        padding: 4px 14px;
+        margin: 40px 0 0 !important;
+        padding-bottom: 4px !important;
+
+        > h2,
+        > .sectionTitleContainer {
+            margin: -32px -14px 14px !important;
+            padding: 0 4px;
+        }
+    }
+
+    // Modern pages (Display): each group's Stack becomes a card.
+    form > .MuiStack-root > .MuiStack-root {
+        background: $panel;
+        border: 1px solid $line;
+        border-radius: 16px;
+        padding: 4px 14px 12px;
+        margin-top: 40px;
+
+        > .MuiTypography-h2:first-child {
+            margin: -32px -14px 8px;
+            padding: 0 4px;
+        }
+    }
+
+    form > .MuiStack-root > .MuiStack-root:first-child {
+        margin-top: 28px;
+    }
+
+    .verticalSection > h2,
+    .verticalSection > .sectionTitleContainer h2,
+    form > .MuiStack-root > .MuiStack-root > .MuiTypography-h2 {
+        font-family: "Noto Sans", sans-serif !important;
+        font-size: 11px !important;
+        font-weight: 600 !important;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+        color: $muted;
+    }
+
+    .fieldDescription,
+    .MuiFormHelperText-root {
+        color: $faint;
+        font-size: 12px;
+    }
+
+    // Rows inside a card are separated by thin lines.
+    .selectContainer,
+    .checkboxContainer,
+    .inputContainer {
+        margin: 0 !important;
+        padding: 12px 0;
+        border-top: 1px solid $line;
+    }
+
+    .verticalSection > h2 + .selectContainer,
+    .verticalSection > h2 + .checkboxContainer,
+    .verticalSection > h2 + .inputContainer,
+    .verticalSection > .sectionTitleContainer + .selectContainer,
+    .verticalSection > .sectionTitleContainer + .checkboxContainer {
+        border-top: 0;
+    }
+
+    // Choice rows: label on the left, the current value in cyan on the right.
+    .selectContainer:not(.selectContainer-inline) {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: center;
+        column-gap: 10px;
+
+        > .selectLabel {
+            flex: 1 1 0;
+            min-width: 40%;
+            margin: 0;
+            font-size: 15px;
+            font-weight: 600;
+            color: $fg;
+        }
+
+        > .emby-select {
+            flex: 0 1 auto;
+            width: auto;
+            max-width: 55%;
+            padding: 6px 24px 6px 6px !important;
+            background: transparent !important;
+            border: 0 !important;
+            color: $cyan !important;
+            font-weight: 600;
+            text-align: end;
+            text-align-last: end;
+            text-overflow: ellipsis;
+            min-height: 36px;
+        }
+
+        > .selectArrowContainer {
+            top: 12px;
+            right: 0;
+            left: auto;
+            height: 36px;
+            display: flex;
+            align-items: center;
+            color: $faint;
+
+            .selectArrow {
+                margin: 0;
+                font-size: 20px;
+            }
+        }
+
+        > .fieldDescription {
+            flex-basis: 100%;
+            margin-top: 4px;
+            padding: 0;
+        }
+    }
+
+    // Text fields
+    .emby-input,
+    .emby-textarea {
+        background: $field;
+        border: 1px solid $line;
+        border-radius: 10px;
+        padding: 0.6em 0.7em;
+
+        &:focus {
+            border-color: $cyan;
+        }
+    }
+
+    .inputLabel,
+    .inputLabelUnfocused {
+        font-size: 12px;
+        font-weight: 600;
+        color: $muted;
+    }
+
+    .inputLabelFocused {
+        color: $cyan;
+    }
+
+    // Checkboxes become switches on the right of the row.
+    .checkboxContainer {
+        flex-direction: column;
+    }
+
+    .emby-checkbox-label {
+        height: auto;
+        min-height: 2.2em;
+        padding-left: 0;
+        padding-inline-start: 0;
+        padding-inline-end: 52px;
+
+        .checkboxLabel {
+            font-size: 15px;
+            font-weight: 600;
+            color: $fg;
+        }
+    }
+
+    .checkboxFieldDescription {
+        padding-left: 0;
+        padding-inline-end: 52px;
+    }
+
+    .checkboxOutline {
+        top: 50%;
+        left: auto;
+        right: 0;
+        width: 38px;
+        height: 22px;
+        margin-top: -11px;
+        border: 0 !important;
+        border-radius: 99px;
+        background: #2a3158 !important;
+        overflow: visible;
+        transition: background 0.2s;
+
+        &::after {
+            content: "";
+            position: absolute;
+            top: 3px;
+            left: 3px;
+            width: 16px;
+            height: 16px;
+            border-radius: 50%;
+            background: #8b92b8;
+            transition: transform 0.2s, background 0.2s;
+        }
+    }
+
+    // The switch replaces the tick icons, in both states.
+    .emby-checkbox + span + .checkboxOutline > .checkboxIcon,
+    .emby-checkbox:checked + span + .checkboxOutline > .checkboxIcon {
+        display: none !important;
+    }
+
+    .emby-checkbox:checked + span + .checkboxOutline {
+        background: $gradient !important;
+
+        &::after {
+            transform: translateX(16px);
+            background: #fff;
+        }
+    }
+
+    .emby-checkbox:focus-visible + span + .checkboxOutline {
+        outline: 2px solid #fff;
+        outline-offset: 2px;
+    }
+
+    // Modern (MUI) pages: the same rows for checkboxes and selects.
+    .MuiFormControlLabel-root {
+        display: flex;
+        flex-direction: row-reverse;
+        justify-content: space-between;
+        margin: 0;
+        padding: 10px 0;
+        border-top: 1px solid $line;
+
+        .MuiFormControlLabel-label {
+            font-size: 15px;
+            font-weight: 600;
+            color: $fg;
+        }
+    }
+
+    .MuiCheckbox-root {
+        position: relative;
+        flex-shrink: 0;
+        width: 38px;
+        height: 22px;
+        padding: 0;
+        margin-inline-start: 12px;
+        border-radius: 99px;
+        background: #2a3158;
+        transition: background 0.2s;
+
+        svg {
+            display: none;
+        }
+
+        &::after {
+            content: "";
+            position: absolute;
+            top: 3px;
+            left: 3px;
+            width: 16px;
+            height: 16px;
+            border-radius: 50%;
+            background: #8b92b8;
+            transition: transform 0.2s, background 0.2s;
+        }
+
+        &.Mui-checked {
+            background: $gradient;
+
+            &::after {
+                transform: translateX(16px);
+                background: #fff;
+            }
+        }
+
+        &.Mui-focusVisible {
+            outline: 2px solid #fff;
+            outline-offset: 2px;
+        }
+    }
+
+    .MuiFormControl-root:has(.MuiSelect-select) {
+        display: flex;
+        flex-flow: row wrap;
+        align-items: center;
+        padding: 6px 0;
+        border-top: 1px solid $line;
+
+        > .MuiInputLabel-root {
+            position: static;
+            flex: 1 1 0;
+            min-width: 40%;
+            transform: none;
+            font-size: 15px;
+            font-weight: 600;
+            color: $fg;
+            white-space: normal;
+        }
+
+        > .MuiInputBase-root {
+            flex: 0 1 auto;
+            max-width: 55%;
+            background: transparent !important;
+            color: $cyan;
+            font-weight: 600;
+
+            &::before,
+            &::after {
+                display: none;
+            }
+
+            .MuiSelect-select {
+                padding: 8px 28px 8px 6px;
+                text-align: end;
+            }
+
+            .MuiSelect-icon {
+                color: $faint;
+            }
+        }
+
+        > .MuiFormHelperText-root {
+            flex-basis: 100%;
+            margin: 2px 0 0;
+        }
+    }
+
+    .MuiTextField-root .MuiFilledInput-root {
+        border-radius: 10px;
+        border: 1px solid $line;
+        background: $field;
+
+        &::before,
+        &::after {
+            display: none;
+        }
+
+        &.Mui-focused {
+            border-color: $cyan;
+        }
+    }
+
+    // Save buttons sit below the cards.
+    .button-submit,
+    form > .MuiStack-root > .MuiButton-root {
+        margin-top: 24px;
+        padding: 0.9em;
+    }
+}
+
+// The Settings page's own pieces.
+.settingsMenuPage {
+    .settingsMenuName {
+        font-family: $display;
+    }
+
+    .settingsMenuTile {
+        background: $panel-2;
+        color: #c9cff0;
+    }
+
+    .settingsMenuItem-danger .settingsMenuTile {
+        color: $danger;
+    }
+
+    .settingsMenuItem:active,
+    .settingsMenuMe:active {
+        background: $tap !important;
+    }
+}
+
+.settingsMenuLabel {
+    color: $muted !important;
+}
+
+/* ---------- Avatars without a picture ---------- */
+.MuiAvatar-colorDefault {
+    background: $gradient !important;
+    color: $on-accent !important;
+    font-family: $display;
+    font-weight: 800;
+}
+
+/* ---------- Account menu ---------- */
+#app-user-menu .MuiPaper-root {
+    min-width: 250px;
+    margin-top: 6px;
+    padding: 6px;
+    background: $panel;
+    background-image: none;
+    border: 1px solid $line;
+    border-radius: 18px;
+    box-shadow: 0 16px 40px rgba(0, 0, 0, 0.6);
+
+    .MuiList-root {
+        padding: 0;
+    }
+
+    .MuiDivider-root {
+        margin: 4px 6px;
+        border-color: $line;
+    }
+
+    .MuiMenuItem-root {
+        min-height: 0;
+        padding: 7px 8px;
+        border-radius: 12px;
+        gap: 2px;
+
+        &:hover,
+        &.Mui-focusVisible {
+            background: $tap;
+        }
+    }
+
+    .MuiListItemText-primary {
+        font-size: 14px;
+        font-weight: 600;
+    }
+
+    .appUserMenuSignOut {
+        color: $danger;
+
+        .MuiListItemIcon-root {
+            color: $danger;
+        }
+    }
+}
+
+.appUserMenuHeader {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 8px 8px 6px;
+    list-style: none;
+
+    .MuiAvatar-root {
+        width: 38px;
+        height: 38px;
+    }
+}
+
+.appUserMenuName {
+    font-family: $display;
+    font-size: 15px;
+    font-weight: 700;
+    color: $fg;
+}
+
+// Small rounded icon tiles in menus and the side menu.
+#app-user-menu .MuiListItemIcon-root,
+.MuiDrawer-paper .MuiListItemButton-root > .MuiListItemIcon-root:not(:has(img)) {
+    min-width: 0;
+    width: 30px;
+    height: 30px;
+    margin-inline-end: 10px;
+    border-radius: 9px;
+    background: $panel-2;
+    color: #c9cff0;
+    display: grid;
+    place-items: center;
+
+    svg {
+        font-size: 17px;
+    }
+}
+
+/* ---------- Side menu ---------- */
+.MuiDrawer-paper {
+    background: $night !important;
+    background-image: none !important;
+    border-right: 1px solid $line !important;
+
+    .MuiDrawer-modal & {
+        border-radius: 0 22px 22px 0;
+    }
+
+    .MuiList-root {
+        padding: 4px 10px;
+    }
+
+    .MuiDivider-root {
+        display: none;
+    }
+
+    .MuiListSubheader-root {
+        padding: 12px 10px 4px;
+        line-height: 1.6;
+        font-size: 11px;
+        font-weight: 600;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+        color: $muted;
+    }
+
+    .MuiListItemButton-root {
+        border-radius: 14px;
+        padding: 7px 10px;
+
+        &:hover {
+            background: $tap;
+        }
+
+        &.Mui-selected,
+        &.Mui-selected:hover {
+            background: $gradient-row;
+            box-shadow: inset 3px 0 0 $cyan;
+
+            > .MuiListItemIcon-root {
+                background: $gradient;
+                color: $on-accent;
+            }
+        }
+    }
+
+    .MuiListItemText-primary {
+        font-size: 15px;
+        font-weight: 600;
+    }
+
+    .MuiListItemText-primary.MuiTypography-h6 {
+        font-family: $display;
+        font-size: 20px;
+        font-weight: 800;
+    }
+
+    .drawerSignOut {
+        color: $danger;
+
+        > .MuiListItemIcon-root {
+            color: $danger;
+        }
+    }
+}
+
+/* ---------- Pickers (bottom sheet on phones) and other menus ---------- */
+.dialogContainer:has(.actionSheet-bottom) {
+    align-items: flex-end;
+}
+
+.actionSheet {
+    background: $panel !important;
+    border: 1px solid $line;
+    border-radius: 18px !important;
+
+    .actionSheetTitle {
+        font-family: $display !important;
+        font-size: 17px !important;
+        font-weight: 700;
+        text-align: start;
+        padding: 0 16px;
+    }
+
+    .actionSheetContent {
+        align-items: stretch;
+    }
+
+    .actionSheetScroller {
+        padding: 0 10px 6px;
+        box-sizing: border-box;
+    }
+
+    .actionSheetMenuItem {
+        margin: 0 0 4px;
+        border-radius: 14px;
+        border: 1.5px solid transparent;
+        font-size: 15px !important;
+        font-weight: 600;
+
+        &:hover,
+        &:focus {
+            background: $tap;
+        }
+    }
+
+    .actionSheetMenuItem-selected {
+        border-color: $cyan;
+        background: #142046;
+
+        .actionsheetMenuItemIcon {
+            color: $cyan;
+        }
+    }
+}
+
+.actionsheet-not-fullscreen.actionSheet-bottom {
+    width: 100%;
+    max-width: 640px;
+    max-height: 80%;
+    margin: 0 !important;
+    border-radius: 22px 22px 0 0 !important;
+    border-bottom: 0;
+    padding-bottom: env(safe-area-inset-bottom);
+
+    .actionSheetContent::before {
+        content: "";
+        display: block;
+        align-self: center;
+        width: 40px;
+        height: 4px;
+        border-radius: 4px;
+        background: $line;
+        margin: 6px 0 2px;
+    }
+
+    // The selected choice shows a filled gradient dot instead of a tick.
+    .actionsheetMenuItemIcon {
+        order: 2;
+        margin: 0 4px 0 0 !important;
+        width: 20px;
+        height: 20px;
+        border-radius: 50%;
+        border: 2px solid $faint;
+        box-sizing: border-box;
+        font-size: 0 !important;
+        visibility: visible !important;
+    }
+
+    .actionSheetMenuItem-selected .actionsheetMenuItemIcon {
+        border: 0;
+        background: $gradient;
+        box-shadow: inset 0 0 0 5px #142046;
+    }
+}
+
+.MuiPopover-paper.MuiMenu-paper {
+    background: $panel;
+    background-image: none;
+    border: 1px solid $line;
+    border-radius: 16px;
+
+    .MuiMenuItem-root {
+        margin: 0 6px 4px;
+        border-radius: 12px;
+        border: 1.5px solid transparent;
+
+        &.Mui-selected {
+            border-color: $cyan;
+            background: #142046;
+        }
+    }
+}
+
+/* ---------- Dialogs ---------- */
+.dialog:not(.dialog-fullscreen, .actionSheet) {
+    background: $panel;
+    border: 1px solid $line;
+    border-radius: 20px;
+}
+
+.formDialogHeader:not(.formDialogHeader-clear),
+.formDialogFooter:not(.formDialogFooter-clear) {
+    background: $panel;
+}
+
+.toast {
+    border-radius: 12px;
+}
+
+/* ---------- Header and cards ---------- */
+.skinHeader-withBackground,
+.MuiAppBar-colorPrimary,
+.MuiAppBar-root:not(.MuiAppBar-colorTransparent) {
+    background-color: $night;
+    background-image: none;
+}
+
+.card:focus .cardBox.visualCardBox,
+.card:focus .cardBox:not(.visualCardBox) .cardScalable {
+    border-color: #fff;
+}
+
+.itemProgressBarForeground {
+    background: $gradient;
+}

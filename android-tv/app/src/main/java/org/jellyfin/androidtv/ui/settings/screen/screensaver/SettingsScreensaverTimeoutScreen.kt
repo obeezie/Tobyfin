@@ -37,6 +37,7 @@ fun SettingsScreensaverTimeoutScreen() {
 			ListButton(
 				headingContent = { Text(heading) },
 				trailingContent = { RadioButton(checked = screensaverInAppTimeout == duration.inWholeMilliseconds) },
+				selected = screensaverInAppTimeout == duration.inWholeMilliseconds,
 				onClick = {
 					screensaverInAppTimeout = duration.inWholeMilliseconds
 					router.back()

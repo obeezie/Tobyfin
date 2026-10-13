@@ -37,6 +37,7 @@ fun SettingsCustomizationClockScreen() {
 			ListButton(
 				headingContent = { Text(stringResource(entry.nameRes)) },
 				trailingContent = { RadioButton(checked = clockBehavior == entry) },
+				selected = clockBehavior == entry,
 				onClick = {
 					clockBehavior = entry
 					router.back()

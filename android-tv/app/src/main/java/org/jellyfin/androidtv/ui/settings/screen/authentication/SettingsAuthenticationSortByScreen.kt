@@ -37,6 +37,7 @@ fun SettingsAuthenticationSortByScreen() {
 			ListButton(
 				headingContent = { Text(stringResource(entry.nameRes)) },
 				trailingContent = { RadioButton(checked = sortBy == entry) },
+				selected = sortBy == entry,
 				onClick = {
 					sortBy = entry
 					router.back()

@@ -37,6 +37,7 @@ fun SettingsPlaybackZoomModeScreen() {
 			ListButton(
 				headingContent = { Text(stringResource(entry.nameRes)) },
 				trailingContent = { RadioButton(checked = playerZoomMode == entry) },
+				selected = playerZoomMode == entry,
 				onClick = {
 					playerZoomMode = entry
 					router.back()

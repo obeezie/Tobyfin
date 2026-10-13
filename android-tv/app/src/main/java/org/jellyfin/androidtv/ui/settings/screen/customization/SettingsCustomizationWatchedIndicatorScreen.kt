@@ -37,6 +37,7 @@ fun SettingsCustomizationWatchedIndicatorScreen() {
 			ListButton(
 				headingContent = { Text(stringResource(entry.nameRes)) },
 				trailingContent = { RadioButton(checked = watchedIndicatorBehavior == entry) },
+				selected = watchedIndicatorBehavior == entry,
 				onClick = {
 					watchedIndicatorBehavior = entry
 					router.back()

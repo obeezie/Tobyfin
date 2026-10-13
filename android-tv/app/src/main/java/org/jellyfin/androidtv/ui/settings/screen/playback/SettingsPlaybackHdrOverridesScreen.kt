@@ -14,6 +14,7 @@ import org.jellyfin.androidtv.ui.navigation.LocalRouter
 import org.jellyfin.androidtv.ui.navigation.focus.focusKey
 import org.jellyfin.androidtv.ui.settings.Routes
 import org.jellyfin.androidtv.ui.settings.composable.SettingsColumn
+import org.jellyfin.androidtv.ui.settings.composable.SettingsValue
 import org.koin.compose.koinInject
 
 @Composable
@@ -35,7 +36,7 @@ fun SettingsPlaybackHdrOverridesScreen() {
 
 			ListButton(
 				headingContent = { Text(stringResource(format.nameRes)) },
-				captionContent = { Text(stringResource(mode.nameRes)) },
+				trailingContent = { SettingsValue(stringResource(mode.nameRes)) },
 				onClick = {
 					router.push(
 						route = Routes.PLAYBACK_HDR_OVERRIDE,

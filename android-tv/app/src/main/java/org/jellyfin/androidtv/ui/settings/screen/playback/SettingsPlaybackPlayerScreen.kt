@@ -65,6 +65,7 @@ fun SettingsPlaybackPlayerScreen() {
 				},
 				headingContent = { Text(stringResource(R.string.app_name)) },
 				trailingContent = { RadioButton(checked = currentExternalPlayer == null && !playbackRewriteVideoEnabled) },
+				selected = currentExternalPlayer == null && !playbackRewriteVideoEnabled,
 				captionContent = { Text(stringResource(R.string.video_player_internal)) },
 				onClick = {
 					playbackRewriteVideoEnabled = false
@@ -89,6 +90,7 @@ fun SettingsPlaybackPlayerScreen() {
 				},
 				headingContent = { Text("New video player") },
 				trailingContent = { RadioButton(checked = currentExternalPlayer == null && playbackRewriteVideoEnabled) },
+				selected = currentExternalPlayer == null && playbackRewriteVideoEnabled,
 				captionContent = { Text(stringResource(R.string.enable_playback_module_description)) },
 				onClick = {
 					playbackRewriteVideoEnabled = true
@@ -100,7 +102,7 @@ fun SettingsPlaybackPlayerScreen() {
 			)
 		}
 
-		item { ListSection(headingContent = { Text(stringResource(R.string.video_player_external)) }) }
+		item { ListSection(headingContent = { Text(stringResource(R.string.video_player_external).uppercase()) }) }
 
 		if (externalPlayerApps.isEmpty()) {
 			item {
@@ -126,6 +128,7 @@ fun SettingsPlaybackPlayerScreen() {
 				},
 				headingContent = { Text(displayName) },
 				trailingContent = { RadioButton(checked = currentExternalPlayer?.componentName == app.activityInfo.componentName) },
+				selected = currentExternalPlayer?.componentName == app.activityInfo.componentName,
 				captionContent = { Text(stringResource(R.string.video_player_external)) },
 				onClick = {
 					externalAppRepository.setExternalPlayerapp(app.activityInfo)

@@ -34,7 +34,7 @@ android {
         minSdk = libs.versions.android.minSdk.get().toInt()
         targetSdk = libs.versions.android.targetSdk.get().toInt()
         versionName = project.getVersionName()
-        versionCode = maxOf(20, getVersionCode(versionName!!))
+        versionCode = maxOf(21, getVersionCode(versionName!!))
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         vectorDrawables.useSupportLibrary = true
     }
@@ -71,7 +71,7 @@ android {
 
         getByName("debug") {
             applicationIdSuffix = ".debug"
-            versionNameSuffix = "-tobyfin.20"
+            versionNameSuffix = "-tobyfin.21"
             isDebuggable = true
             resValue("string", "app_name", "Tobyfin")
         }

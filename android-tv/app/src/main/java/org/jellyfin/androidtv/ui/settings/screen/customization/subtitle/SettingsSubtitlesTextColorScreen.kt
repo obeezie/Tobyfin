@@ -43,7 +43,7 @@ fun SettingsSubtitlesTextColorScreen() {
 		}
 
 		// Presets
-		item { ListSection(headingContent = { Text(stringResource(R.string.color_presets)) }) }
+		item { ListSection(headingContent = { Text(stringResource(R.string.color_presets).uppercase()) }) }
 
 		item {
 			SubtitleColorPresetsControl(
@@ -55,7 +55,7 @@ fun SettingsSubtitlesTextColorScreen() {
 
 		// Color channels
 
-		item { ListSection(headingContent = { Text(stringResource(R.string.color_custom)) }) }
+		item { ListSection(headingContent = { Text(stringResource(R.string.color_custom).uppercase()) }) }
 
 		item {
 			ListColorChannelRangeControl(

@@ -13,8 +13,7 @@
     }, {
       "name": "Dark",
       "id": "dark",
-      "color": "#202020",
-      "default": true
+      "color": "#202020"
     }, {
       "name": "Light",
       "id": "light",
@@ -23,6 +22,11 @@
       "name": "Purple Haze",
       "id": "purplehaze",
       "color": "#000420"
+    }, {
+      "name": "Tobyfin",
+      "id": "tobyfin",
+      "color": "#080c1d",
+      "default": true
     }, {
       "name": "WMC",
       "id": "wmc",

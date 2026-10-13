@@ -26,6 +26,7 @@ import org.jellyfin.androidtv.ui.navigation.focus.focusKey
 import org.jellyfin.androidtv.ui.settings.Routes
 import org.jellyfin.androidtv.ui.settings.compat.rememberPreference
 import org.jellyfin.androidtv.ui.settings.composable.SettingsColumn
+import org.jellyfin.androidtv.ui.settings.composable.SettingsValue
 import org.koin.compose.koinInject
 
 @Composable
@@ -88,7 +89,7 @@ fun SettingsPlaybackScreen() {
 			ListButton(
 				leadingContent = { Icon(painterResource(R.drawable.ic_zzz), contentDescription = null) },
 				headingContent = { Text(stringResource(R.string.pref_playback_inactivity_prompt)) },
-				captionContent = { Text(stringResource(stillWatchingBehavior.nameRes)) },
+				trailingContent = { SettingsValue(stringResource(stillWatchingBehavior.nameRes)) },
 				onClick = { router.push(Routes.PLAYBACK_INACTIVITY_PROMPT) },
 				modifier = Modifier.focusKey(Routes.PLAYBACK_INACTIVITY_PROMPT)
 			)

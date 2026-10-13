@@ -37,6 +37,7 @@ fun SettingsPlaybackNextUpBehaviorScreen() {
 			ListButton(
 				headingContent = { Text(stringResource(entry.nameRes)) },
 				trailingContent = { RadioButton(checked = nextUpBehavior == entry) },
+				selected = nextUpBehavior == entry,
 				onClick = {
 					nextUpBehavior = entry
 					router.back()

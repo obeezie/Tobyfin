@@ -13,6 +13,7 @@ import org.jellyfin.androidtv.ui.navigation.focus.focusKey
 import org.jellyfin.androidtv.ui.playback.segment.MediaSegmentRepository
 import org.jellyfin.androidtv.ui.settings.Routes
 import org.jellyfin.androidtv.ui.settings.composable.SettingsColumn
+import org.jellyfin.androidtv.ui.settings.composable.SettingsValue
 import org.koin.compose.koinInject
 
 @Composable
@@ -33,7 +34,7 @@ fun SettingsPlaybackMediaSegmentsScreen() {
 
 			ListButton(
 				headingContent = { Text(stringResource(segmentType.nameRes)) },
-				captionContent = { Text(stringResource(action.nameRes)) },
+				trailingContent = { SettingsValue(stringResource(action.nameRes)) },
 				onClick = {
 					router.push(
 						route = Routes.PLAYBACK_MEDIA_SEGMENT,

@@ -118,7 +118,7 @@ fun DownloadsScreen(
                         if (isSelectionMode) {
                             Text(text = stringResource(R.string.selected_count, selection.size))
                         } else {
-                            Text(text = stringResource(R.string.downloads))
+                            Text(text = stringResource(R.string.downloads), fontWeight = FontWeight.Bold)
                         }
                     }
                 },
@@ -202,6 +202,7 @@ fun DownloadsScreen(
                     }
                 },
                 backgroundColor = Color.Transparent,
+                elevation = 0.dp,
             )
         },
         content = { innerPadding ->
@@ -248,8 +249,9 @@ fun StorageLocationNotSetCard(
     modifier: Modifier = Modifier,
 ) = Card(
     modifier = modifier.fillMaxWidth(),
-    elevation = 4.dp,
-    backgroundColor = MaterialTheme.colors.error.copy(alpha = 0.2f),
+    elevation = 0.dp,
+    shape = MaterialTheme.shapes.medium,
+    backgroundColor = MaterialTheme.colors.error.copy(alpha = 0.16f),
 ) {
     Column(modifier = Modifier.padding(16.dp)) {
         Text(
@@ -280,8 +282,9 @@ fun StorageLocationInaccessibleCard(
     modifier: Modifier = Modifier,
 ) = Card(
     modifier = modifier.fillMaxWidth(),
-    elevation = 4.dp,
-    backgroundColor = MaterialTheme.colors.error.copy(alpha = 0.2f),
+    elevation = 0.dp,
+    shape = MaterialTheme.shapes.medium,
+    backgroundColor = MaterialTheme.colors.error.copy(alpha = 0.16f),
 ) {
     Column(modifier = Modifier.padding(16.dp)) {
         Text(

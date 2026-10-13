@@ -17,12 +17,14 @@ import React, { FC, useCallback } from 'react';
 import { Link } from 'react-router-dom';
 
 import { appHost } from 'components/apphost';
+import UserAvatar from 'components/UserAvatar';
 import { AppFeature } from 'constants/appFeature';
 import { useApi } from 'hooks/useApi';
 import { useQuickConnectEnabled } from 'hooks/useQuickConnect';
 import globalize from 'lib/globalize';
 import shell from 'scripts/shell';
 import Dashboard from 'utils/dashboard';
+import { confirmLogout } from 'utils/confirmLogout';
 
 export const ID = 'app-user-menu';
 
@@ -54,8 +56,8 @@ const AppUserMenu: FC<AppUserMenuProps> = ({
     }, [ onMenuClose ]);
 
     const onLogoutClick = useCallback(() => {
-        Dashboard.logout();
         onMenuClose();
+        confirmLogout();
     }, [ onMenuClose ]);
 
     const onSelectServerClick = useCallback(() => {
@@ -79,6 +81,12 @@ const AppUserMenu: FC<AppUserMenuProps> = ({
             open={open}
             onClose={onMenuClose}
         >
+            {/* Tobyfin: who is signed in, above the menu items */}
+            <li className='appUserMenuHeader' role='presentation'>
+                <UserAvatar user={user} />
+                <span className='appUserMenuName'>{user?.Name}</span>
+            </li>
+            <Divider />
             <MenuItem
                 component={Link}
                 to={`/userprofile?userId=${user?.Id}`}
@@ -104,10 +112,6 @@ const AppUserMenu: FC<AppUserMenuProps> = ({
                 </ListItemText>
             </MenuItem>
 
-            {(appHost.supports(AppFeature.DownloadManagement) || appHost.supports(AppFeature.ClientSettings)) && (
-                <Divider />
-            )}
-
             {appHost.supports(AppFeature.DownloadManagement) && (
                 <MenuItem
                     onClick={onDownloadManagerClick}
@@ -130,6 +134,35 @@ const AppUserMenu: FC<AppUserMenuProps> = ({
                     </ListItemIcon>
                     <ListItemText>
                         {globalize.translate('ClientSettings')}
+                    </ListItemText>
+                </MenuItem>
+            )}
+
+            <Divider />
+            {isQuickConnectEnabled && (
+                <MenuItem
+                    component={Link}
+                    to='/quickconnect'
+                    onClick={onMenuClose}
+                >
+                    <ListItemIcon>
+                        <PhonelinkLock />
+                    </ListItemIcon>
+                    <ListItemText>
+                        {globalize.translate('QuickConnect')}
+                    </ListItemText>
+                </MenuItem>
+            )}
+
+            {appHost.supports(AppFeature.MultiServer) && (
+                <MenuItem
+                    onClick={onSelectServerClick}
+                >
+                    <ListItemIcon>
+                        <Storage />
+                    </ListItemIcon>
+                    <ListItemText>
+                        {globalize.translate('SelectServer')}
                     </ListItemText>
                 </MenuItem>
             )}
@@ -163,35 +196,8 @@ const AppUserMenu: FC<AppUserMenuProps> = ({
             ])}
 
             <Divider />
-            {isQuickConnectEnabled && (
-                <MenuItem
-                    component={Link}
-                    to='/quickconnect'
-                    onClick={onMenuClose}
-                >
-                    <ListItemIcon>
-                        <PhonelinkLock />
-                    </ListItemIcon>
-                    <ListItemText>
-                        {globalize.translate('QuickConnect')}
-                    </ListItemText>
-                </MenuItem>
-            )}
-
-            {appHost.supports(AppFeature.MultiServer) && (
-                <MenuItem
-                    onClick={onSelectServerClick}
-                >
-                    <ListItemIcon>
-                        <Storage />
-                    </ListItemIcon>
-                    <ListItemText>
-                        {globalize.translate('SelectServer')}
-                    </ListItemText>
-                </MenuItem>
-            )}
-
             <MenuItem
+                className='appUserMenuSignOut'
                 onClick={onLogoutClick}
             >
                 <ListItemIcon>

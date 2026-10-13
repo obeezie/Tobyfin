@@ -29,6 +29,7 @@ import org.jellyfin.androidtv.ui.navigation.focus.focusKey
 import org.jellyfin.androidtv.ui.settings.Routes
 import org.jellyfin.androidtv.ui.settings.compat.rememberPreference
 import org.jellyfin.androidtv.ui.settings.composable.SettingsColumn
+import org.jellyfin.androidtv.ui.settings.composable.SettingsValue
 import org.jellyfin.design.Tokens
 import org.koin.compose.koinInject
 import kotlin.math.roundToInt
@@ -63,7 +64,7 @@ fun SettingsPlaybackNextUpScreen() {
 
 			ListButton(
 				headingContent = { Text(stringResource(R.string.pref_next_up_behavior_title)) },
-				captionContent = { Text(stringResource(nextUpBehavior.nameRes)) },
+				trailingContent = { SettingsValue(stringResource(nextUpBehavior.nameRes)) },
 				onClick = { router.push(Routes.PLAYBACK_NEXT_UP_BEHAVIOR) },
 				modifier = Modifier.focusKey(Routes.PLAYBACK_NEXT_UP_BEHAVIOR)
 			)

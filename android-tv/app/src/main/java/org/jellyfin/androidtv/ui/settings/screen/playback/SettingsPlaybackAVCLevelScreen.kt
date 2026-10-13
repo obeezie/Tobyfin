@@ -40,6 +40,7 @@ fun SettingsPlaybackAVCLevelScreen() {
 			ListButton(
 				headingContent = { Text(stringResource(AVCLevel.AUTO.nameRes)) },
 				trailingContent = { RadioButton(checked = userAVCLevel == AVCLevel.AUTO) },
+				selected = userAVCLevel == AVCLevel.AUTO,
 				onClick = {
 					userAVCLevel = AVCLevel.AUTO
 					router.back()
@@ -49,12 +50,13 @@ fun SettingsPlaybackAVCLevelScreen() {
 			)
 		}
 
-		item { ListSection(headingContent = { Text(stringResource(R.string.codec_level_manual)) }) }
+		item { ListSection(headingContent = { Text(stringResource(R.string.codec_level_manual).uppercase()) }) }
 
 		items(manualOptions) { level ->
 			ListButton(
 				headingContent = { Text(stringResource(level.nameRes)) },
 				trailingContent = { RadioButton(checked = userAVCLevel == level) },
+				selected = userAVCLevel == level,
 				onClick = {
 					userAVCLevel = level
 					router.back()

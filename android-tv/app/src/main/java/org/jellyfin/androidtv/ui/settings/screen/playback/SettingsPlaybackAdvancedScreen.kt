@@ -34,6 +34,7 @@ import org.jellyfin.androidtv.ui.settings.Routes
 import org.jellyfin.androidtv.ui.settings.compat.rememberPreference
 import org.jellyfin.androidtv.ui.settings.composable.SettingsAsyncActionListButton
 import org.jellyfin.androidtv.ui.settings.composable.SettingsColumn
+import org.jellyfin.androidtv.ui.settings.composable.SettingsValue
 import org.jellyfin.androidtv.util.profile.createDeviceProfileReport
 import org.jellyfin.design.Tokens
 import org.jellyfin.sdk.api.client.ApiClient
@@ -59,7 +60,7 @@ fun SettingsPlaybackAdvancedScreen() {
 			)
 		}
 
-		item { ListSection(headingContent = { Text(stringResource(R.string.pref_customization)) }) }
+		item { ListSection(headingContent = { Text(stringResource(R.string.pref_customization).uppercase()) }) }
 
 		item {
 			var resumeSubtractDuration by rememberPreference(userPreferences, UserPreferences.resumeSubtractDuration)
@@ -67,7 +68,7 @@ fun SettingsPlaybackAdvancedScreen() {
 
 			ListButton(
 				headingContent = { Text(stringResource(R.string.lbl_resume_preroll)) },
-				captionContent = { Text(options[resumeSubtractDuration].orEmpty()) },
+				trailingContent = { SettingsValue(options[resumeSubtractDuration].orEmpty()) },
 				onClick = { router.push(Routes.PLAYBACK_RESUME_SUBTRACT_DURATION) },
 				modifier = Modifier.focusKey(Routes.PLAYBACK_RESUME_SUBTRACT_DURATION)
 			)
@@ -115,13 +116,13 @@ fun SettingsPlaybackAdvancedScreen() {
 
 			ListButton(
 				headingContent = { Text(stringResource(R.string.playback_buffer_length)) },
-				captionContent = { Text(stringResource(bufferLength.nameRes)) },
+				trailingContent = { SettingsValue(stringResource(bufferLength.nameRes)) },
 				onClick = { router.push(Routes.PLAYBACK_BUFFER_LENGTH) },
 				modifier = Modifier.focusKey(Routes.PLAYBACK_BUFFER_LENGTH)
 			)
 		}
 
-		item { ListSection(headingContent = { Text(stringResource(R.string.pref_video)) }) }
+		item { ListSection(headingContent = { Text(stringResource(R.string.pref_video).uppercase()) }) }
 
 		item {
 			var maxBitrate by rememberPreference(userPreferences, UserPreferences.maxBitrate)
@@ -129,7 +130,7 @@ fun SettingsPlaybackAdvancedScreen() {
 
 			ListButton(
 				headingContent = { Text(stringResource(R.string.pref_max_bitrate_title)) },
-				captionContent = { Text(options[maxBitrate].orEmpty()) },
+				trailingContent = { SettingsValue(options[maxBitrate].orEmpty()) },
 				onClick = { router.push(Routes.PLAYBACK_MAX_BITRATE) },
 				modifier = Modifier.focusKey(Routes.PLAYBACK_MAX_BITRATE)
 			)
@@ -140,7 +141,7 @@ fun SettingsPlaybackAdvancedScreen() {
 
 			ListButton(
 				headingContent = { Text(stringResource(R.string.lbl_refresh_switching)) },
-				captionContent = { Text(stringResource(refreshRateSwitchingBehavior.nameRes)) },
+				trailingContent = { SettingsValue(stringResource(refreshRateSwitchingBehavior.nameRes)) },
 				onClick = { router.push(Routes.PLAYBACK_REFRESH_RATE_SWITCHING_BEHAVIOR) },
 				modifier = Modifier.focusKey(Routes.PLAYBACK_REFRESH_RATE_SWITCHING_BEHAVIOR)
 			)
@@ -189,7 +190,7 @@ fun SettingsPlaybackAdvancedScreen() {
 
 			ListButton(
 				headingContent = { Text(stringResource(R.string.default_video_zoom)) },
-				captionContent = { Text(stringResource(playerZoomMode.nameRes)) },
+				trailingContent = { SettingsValue(stringResource(playerZoomMode.nameRes)) },
 				onClick = { router.push(Routes.PLAYBACK_ZOOM_MODE) },
 				modifier = Modifier.focusKey(Routes.PLAYBACK_ZOOM_MODE)
 			)
@@ -213,7 +214,7 @@ fun SettingsPlaybackAdvancedScreen() {
 			)
 		}
 
-		item { ListSection(headingContent = { Text(stringResource(R.string.pref_subtitles)) }) }
+		item { ListSection(headingContent = { Text(stringResource(R.string.pref_subtitles).uppercase()) }) }
 
 		item {
 			var pgsDirectPlay by rememberPreference(userPreferences, UserPreferences.pgsDirectPlay)
@@ -251,7 +252,7 @@ fun SettingsPlaybackAdvancedScreen() {
 			)
 		}
 
-		item { ListSection(headingContent = { Text(stringResource(R.string.pref_live_tv_cat)) }) }
+		item { ListSection(headingContent = { Text(stringResource(R.string.pref_live_tv_cat).uppercase()) }) }
 
 		item {
 			var liveTvDirectPlayEnabled by rememberPreference(userPreferences, UserPreferences.liveTvDirectPlayEnabled)
@@ -264,14 +265,14 @@ fun SettingsPlaybackAdvancedScreen() {
 			)
 		}
 
-		item { ListSection(headingContent = { Text(stringResource(R.string.pref_audio)) }) }
+		item { ListSection(headingContent = { Text(stringResource(R.string.pref_audio).uppercase()) }) }
 
 		item {
 			var audioBehaviour by rememberPreference(userPreferences, UserPreferences.audioBehaviour)
 
 			ListButton(
 				headingContent = { Text(stringResource(R.string.lbl_audio_output)) },
-				captionContent = { Text(stringResource(audioBehaviour.nameRes)) },
+				trailingContent = { SettingsValue(stringResource(audioBehaviour.nameRes)) },
 				onClick = { router.push(Routes.PLAYBACK_AUDIO_BEHAVIOR) },
 				modifier = Modifier.focusKey(Routes.PLAYBACK_AUDIO_BEHAVIOR)
 			)
@@ -299,7 +300,7 @@ fun SettingsPlaybackAdvancedScreen() {
 			)
 		}
 
-		item { ListSection(headingContent = { Text(stringResource(R.string.pref_troubleshooting)) }) }
+		item { ListSection(headingContent = { Text(stringResource(R.string.pref_troubleshooting).uppercase()) }) }
 
 		item {
 			val api = koinInject<ApiClient>()

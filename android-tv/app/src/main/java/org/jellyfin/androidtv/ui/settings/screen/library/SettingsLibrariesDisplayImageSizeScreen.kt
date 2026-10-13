@@ -42,6 +42,7 @@ fun SettingsLibrariesDisplayImageSizeScreen(itemId: UUID, displayPreferencesId: 
 			ListButton(
 				headingContent = { Text(stringResource(entry.nameRes)) },
 				trailingContent = { RadioButton(checked = posterSize == entry) },
+				selected = posterSize == entry,
 				onClick = {
 					posterSize = entry
 					router.back()

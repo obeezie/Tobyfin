@@ -53,6 +53,7 @@ fun SettingsHomeNextUpCutoffScreen() {
 			ListButton(
 				headingContent = { Text(label) },
 				trailingContent = { RadioButton(checked = homeNextUpMaxDays == days) },
+				selected = homeNextUpMaxDays == days,
 				onClick = {
 					homeNextUpMaxDays = days
 					router.back()

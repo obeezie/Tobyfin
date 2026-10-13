@@ -25,6 +25,7 @@ import org.jellyfin.androidtv.ui.navigation.focus.focusKey
 import org.jellyfin.androidtv.ui.settings.Routes
 import org.jellyfin.androidtv.ui.settings.compat.rememberPreference
 import org.jellyfin.androidtv.ui.settings.composable.SettingsColumn
+import org.jellyfin.androidtv.ui.settings.composable.SettingsValue
 import org.jellyfin.sdk.model.serializer.toUUIDOrNull
 import org.koin.compose.koinInject
 
@@ -66,12 +67,12 @@ fun SettingsAuthenticationScreen(launchedFromLogin: Boolean = false) {
 
 			ListButton(
 				headingContent = { Text(stringResource(R.string.auto_sign_in)) },
-				captionContent = {
+				trailingContent = {
 					when (autoLoginUserBehavior) {
-						UserSelectBehavior.ASK -> Text(stringResource(R.string.user_picker_ask_title))
-						UserSelectBehavior.DISABLED -> Text(stringResource(R.string.user_picker_disable_title))
-						UserSelectBehavior.LAST_USER -> Text(stringResource(R.string.user_picker_last_user_title))
-						UserSelectBehavior.SPECIFIC_USER -> Text(autoLoginUser?.name ?: stringResource(R.string.loading))
+						UserSelectBehavior.ASK -> SettingsValue(stringResource(R.string.user_picker_ask_title))
+						UserSelectBehavior.DISABLED -> SettingsValue(stringResource(R.string.user_picker_disable_title))
+						UserSelectBehavior.LAST_USER -> SettingsValue(stringResource(R.string.user_picker_last_user_title))
+						UserSelectBehavior.SPECIFIC_USER -> SettingsValue(autoLoginUser?.name ?: stringResource(R.string.loading))
 					}
 				},
 				onClick = { router.push(Routes.AUTHENTICATION_AUTO_SIGN_IN) },
@@ -83,14 +84,14 @@ fun SettingsAuthenticationScreen(launchedFromLogin: Boolean = false) {
 			var sortBy by rememberPreference(authenticationPreferences, AuthenticationPreferences.sortBy)
 			ListButton(
 				headingContent = { Text(stringResource(R.string.sort_accounts_by)) },
-				captionContent = { Text(stringResource(sortBy.nameRes)) },
+				trailingContent = { SettingsValue(stringResource(sortBy.nameRes)) },
 				onClick = { router.push(Routes.AUTHENTICATION_SORT_BY) },
 				modifier = Modifier.focusKey(Routes.AUTHENTICATION_SORT_BY)
 			)
 		}
 
 		if (storedServers.isNotEmpty()) {
-			item { ListSection(headingContent = { Text(stringResource(R.string.lbl_manage_servers)) }) }
+			item { ListSection(headingContent = { Text(stringResource(R.string.lbl_manage_servers).uppercase()) }) }
 
 			items(storedServers) { server ->
 				ListButton(
@@ -113,7 +114,7 @@ fun SettingsAuthenticationScreen(launchedFromLogin: Boolean = false) {
 		// Disallow changing the "always authenticate" option from the login screen
 		// because that could allow a kid to disable the function to access a parent's account
 		if (!launchedFromLogin) {
-			item { ListSection(headingContent = { Text(stringResource(R.string.advanced_settings)) }) }
+			item { ListSection(headingContent = { Text(stringResource(R.string.advanced_settings).uppercase()) }) }
 
 			item {
 				var alwaysAuthenticate by rememberPreference(authenticationPreferences, AuthenticationPreferences.alwaysAuthenticate)

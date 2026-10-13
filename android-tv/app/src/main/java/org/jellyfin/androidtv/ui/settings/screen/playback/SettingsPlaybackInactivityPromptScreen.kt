@@ -37,6 +37,7 @@ fun SettingsPlaybackInactivityPromptScreen() {
 			ListButton(
 				headingContent = { Text(stringResource(entry.nameRes)) },
 				trailingContent = { RadioButton(checked = stillWatchingBehavior == entry) },
+				selected = stillWatchingBehavior == entry,
 				onClick = {
 					stillWatchingBehavior = entry
 					router.back()

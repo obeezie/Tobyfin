@@ -41,6 +41,7 @@ fun SettingsPlaybackHdrOverrideScreen(
 			ListButton(
 				headingContent = { Text(stringResource(entry.nameRes)) },
 				trailingContent = { RadioButton(checked = mode == entry) },
+				selected = mode == entry,
 				onClick = {
 					mode = entry
 					router.back()

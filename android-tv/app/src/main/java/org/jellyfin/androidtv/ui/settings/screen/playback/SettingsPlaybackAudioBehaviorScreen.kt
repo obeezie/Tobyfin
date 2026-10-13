@@ -37,6 +37,7 @@ fun SettingsPlaybackAudioBehaviorScreen() {
 			ListButton(
 				headingContent = { Text(stringResource(entry.nameRes)) },
 				trailingContent = { RadioButton(checked = audioBehaviour == entry) },
+				selected = audioBehaviour == entry,
 				onClick = {
 					audioBehaviour = entry
 					router.back()

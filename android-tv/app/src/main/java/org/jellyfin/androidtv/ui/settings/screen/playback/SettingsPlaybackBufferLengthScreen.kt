@@ -37,6 +37,7 @@ fun SettingsPlaybackBufferLengthScreen() {
 			ListButton(
 				headingContent = { Text(stringResource(entry.nameRes)) },
 				trailingContent = { RadioButton(checked = bufferLength == entry) },
+				selected = bufferLength == entry,
 				onClick = {
 					bufferLength = entry
 					router.back()

@@ -1,12 +1,15 @@
 package org.jellyfin.androidtv.ui.base.list
 
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.sizeIn
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.layout.width
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
@@ -16,6 +19,7 @@ import androidx.compose.ui.unit.dp
 import org.jellyfin.androidtv.ui.base.JellyfinTheme
 import org.jellyfin.androidtv.ui.base.LocalTextStyle
 import org.jellyfin.androidtv.ui.base.ProvideTextStyle
+import org.jellyfin.androidtv.ui.base.TobyfinStyle
 import org.jellyfin.design.Tokens
 
 @Composable
@@ -38,12 +42,14 @@ fun ListItemContent(
 			verticalAlignment = Alignment.CenterVertically,
 		) {
 			leadingContent?.let { content ->
+				// Tobyfin: leading icons sit on a small rounded tile.
 				Box(
 					modifier = Modifier
-						.sizeIn(minWidth = 24.dp),
+						.size(34.dp)
+						.background(TobyfinStyle.Tile, RoundedCornerShape(10.dp)),
 					contentAlignment = Alignment.Center,
 					content = {
-						ProvideTextStyle(LocalTextStyle.current.copy(color = JellyfinTheme.colorScheme.listCaption)) {
+						ProvideTextStyle(LocalTextStyle.current.copy(color = TobyfinStyle.TileIcon)) {
 							content()
 						}
 					}

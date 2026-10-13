@@ -259,7 +259,9 @@ export function show(options: Options) {
 
         // Check for null in case int 0 was passed in
         const optionId = item.id == null || item.id === '' ? item.value : item.id;
-        html += '<button' + autoFocus + ' is="emby-button" type="button" class="' + menuItemClass + '" data-id="' + optionId + '">';
+        // Tobyfin: mark the current choice so themes can outline it.
+        const selectedClass = item.selected ? ' actionSheetMenuItem-selected' : '';
+        html += '<button' + autoFocus + ' is="emby-button" type="button" class="' + menuItemClass + selectedClass + '" data-id="' + optionId + '">';
 
         itemIcon = icons[i];
 

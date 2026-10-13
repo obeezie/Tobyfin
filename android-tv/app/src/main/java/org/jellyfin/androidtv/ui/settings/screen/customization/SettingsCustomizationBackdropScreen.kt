@@ -37,6 +37,7 @@ fun SettingsCustomizationBackdropScreen() {
 			ListButton(
 				headingContent = { Text(stringResource(entry.nameRes)) },
 				trailingContent = { RadioButton(checked = backdropBehavior == entry) },
+				selected = backdropBehavior == entry,
 				onClick = {
 					backdropBehavior = entry
 					router.back()

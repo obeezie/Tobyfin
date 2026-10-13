@@ -38,6 +38,7 @@ fun SettingsLiveTvGuideChannelOrderScreen() {
 			ListButton(
 				headingContent = { Text(stringResource(entry.nameRes)) },
 				trailingContent = { RadioButton(checked = channelOrderEnum == entry) },
+				selected = channelOrderEnum == entry,
 				onClick = {
 					channelOrder = entry.stringValue
 					router.back()

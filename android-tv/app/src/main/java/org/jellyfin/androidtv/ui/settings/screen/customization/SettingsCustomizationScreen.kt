@@ -23,6 +23,7 @@ import org.jellyfin.androidtv.ui.navigation.focus.focusKey
 import org.jellyfin.androidtv.ui.settings.Routes
 import org.jellyfin.androidtv.ui.settings.compat.rememberPreference
 import org.jellyfin.androidtv.ui.settings.composable.SettingsColumn
+import org.jellyfin.androidtv.ui.settings.composable.SettingsValue
 import org.koin.compose.koinInject
 
 @Composable
@@ -46,7 +47,7 @@ fun SettingsCustomizationScreen() {
 
 			ListButton(
 				headingContent = { Text(stringResource(R.string.pref_app_theme)) },
-				captionContent = { Text(stringResource(appTheme.nameRes)) },
+				trailingContent = { SettingsValue(stringResource(appTheme.nameRes)) },
 				onClick = { router.push(Routes.CUSTOMIZATION_THEME) },
 				modifier = Modifier.focusKey(Routes.CUSTOMIZATION_THEME)
 			)
@@ -57,7 +58,7 @@ fun SettingsCustomizationScreen() {
 
 			ListButton(
 				headingContent = { Text(stringResource(R.string.pref_clock_display)) },
-				captionContent = { Text(stringResource(clockBehavior.nameRes)) },
+				trailingContent = { SettingsValue(stringResource(clockBehavior.nameRes)) },
 				onClick = { router.push(Routes.CUSTOMIZATION_CLOCK) },
 				modifier = Modifier.focusKey(Routes.CUSTOMIZATION_CLOCK)
 			)
@@ -68,7 +69,7 @@ fun SettingsCustomizationScreen() {
 
 			ListButton(
 				headingContent = { Text(stringResource(R.string.pref_watched_indicator)) },
-				captionContent = { Text(stringResource(watchedIndicatorBehavior.nameRes)) },
+				trailingContent = { SettingsValue(stringResource(watchedIndicatorBehavior.nameRes)) },
 				onClick = { router.push(Routes.CUSTOMIZATION_WATCHED_INDICATOR) },
 				modifier = Modifier.focusKey(Routes.CUSTOMIZATION_WATCHED_INDICATOR)
 			)
@@ -79,7 +80,7 @@ fun SettingsCustomizationScreen() {
 
 			ListButton(
 				headingContent = { Text(stringResource(R.string.lbl_show_backdrop)) },
-				captionContent = { Text(stringResource(backdropBehavior.nameRes)) },
+				trailingContent = { SettingsValue(stringResource(backdropBehavior.nameRes)) },
 				onClick = { router.push(Routes.CUSTOMIZATION_BACKDROP) },
 				modifier = Modifier.focusKey(Routes.CUSTOMIZATION_BACKDROP)
 			)
@@ -112,7 +113,7 @@ fun SettingsCustomizationScreen() {
 			)
 		}
 
-		item { ListSection(headingContent = { Text(stringResource(R.string.pref_browsing)) }) }
+		item { ListSection(headingContent = { Text(stringResource(R.string.pref_browsing).uppercase()) }) }
 
 		item {
 			ListButton(

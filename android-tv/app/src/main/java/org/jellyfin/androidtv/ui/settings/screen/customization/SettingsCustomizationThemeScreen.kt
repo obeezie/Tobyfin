@@ -37,6 +37,7 @@ fun SettingsCustomizationThemeScreen() {
 			ListButton(
 				headingContent = { Text(stringResource(entry.nameRes)) },
 				trailingContent = { RadioButton(checked = appTheme == entry) },
+				selected = appTheme == entry,
 				onClick = {
 					appTheme = entry
 					router.back()

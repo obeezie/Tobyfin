@@ -16,6 +16,7 @@ import org.jellyfin.androidtv.ui.navigation.focus.focusKey
 import org.jellyfin.androidtv.ui.settings.Routes
 import org.jellyfin.androidtv.ui.settings.compat.rememberPreference
 import org.jellyfin.androidtv.ui.settings.composable.SettingsColumn
+import org.jellyfin.androidtv.ui.settings.composable.SettingsValue
 import org.koin.compose.koinInject
 
 @Composable
@@ -35,7 +36,7 @@ fun SettingsHomeScreen() {
 		itemsIndexed(userSettingPreferences.homesections) { index, section ->
 			ListButton(
 				headingContent = { Text(stringResource(R.string.home_section_i, index + 1)) },
-				captionContent = { Text(stringResource(userSettingPreferences[section].nameRes)) },
+				trailingContent = { SettingsValue(stringResource(userSettingPreferences[section].nameRes)) },
 				onClick = { router.push(Routes.HOME_SECTION, mapOf("index" to index.toString())) },
 				modifier = Modifier.focusKey("home_section_$index")
 			)
@@ -55,7 +56,7 @@ fun SettingsHomeScreen() {
 
 			ListButton(
 				headingContent = { Text(stringResource(R.string.home_next_up_max_days)) },
-				captionContent = { Text(selectedCaption) },
+				trailingContent = { SettingsValue(selectedCaption) },
 				onClick = { router.push(Routes.HOME_NEXT_UP_CUTOFF) },
 				modifier = Modifier.focusKey(Routes.HOME_NEXT_UP_CUTOFF)
 			)

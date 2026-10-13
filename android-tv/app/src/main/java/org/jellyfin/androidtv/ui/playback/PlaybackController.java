@@ -894,6 +894,17 @@ public class PlaybackController implements PlaybackControllerNotifiable {
         }
     }
 
+    /**
+     * Restart the current item at the current position with this subtitle track, such as one the server has just
+     * added. The subtitle offset goes back to 0, since it was set for the previous track.
+     */
+    public void restartWithSubtitle(int subtitleIndex) {
+        refreshCurrentPosition();
+        if (mVideoManager != null) mVideoManager.getSubtitleTiming().reset();
+        stop();
+        play(mCurrentPosition, subtitleIndex);
+    }
+
     public void refreshStream() {
         // get current timestamp first
         refreshCurrentPosition();

@@ -99,6 +99,11 @@ class UserPreferences(context: Context) : SharedPreferenceStore(
 		var externalPlayerComponentName = stringPreference("external_player_component", "")
 
 		/**
+		 * The language "Find other subtitles" last searched in, as a 3-letter code. Empty until the first search.
+		 */
+		var subtitleSearchLanguage = stringPreference("subtitle_search_language", "")
+
+		/**
 		 * Change refresh rate to match media when device supports it
 		 */
 		var refreshRateSwitchingBehavior = enumPreference("refresh_rate_switching_behavior", RefreshRateSwitchingBehavior.DISABLED)

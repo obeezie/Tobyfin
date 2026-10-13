@@ -22,8 +22,6 @@ import org.jellyfin.androidtv.ui.settings.screen.customization.subtitle.Settings
 import org.jellyfin.androidtv.ui.settings.screen.customization.subtitle.SettingsSubtitlesScreen
 import org.jellyfin.androidtv.ui.settings.screen.customization.subtitle.SettingsSubtitlesTextColorScreen
 import org.jellyfin.androidtv.ui.settings.screen.home.SettingsHomeNextUpCutoffScreen
-import org.jellyfin.androidtv.ui.settings.screen.home.SettingsHomeScreen
-import org.jellyfin.androidtv.ui.settings.screen.home.SettingsHomeSectionScreen
 import org.jellyfin.androidtv.ui.settings.screen.library.SettingsLibrariesDisplayGridScreen
 import org.jellyfin.androidtv.ui.settings.screen.library.SettingsLibrariesDisplayImageSizeScreen
 import org.jellyfin.androidtv.ui.settings.screen.library.SettingsLibrariesDisplayImageTypeScreen
@@ -88,8 +86,6 @@ object Routes {
 	const val LIBRARIES_DISPLAY_IMAGE_SIZE = "/libraries/display/{itemId}/{displayPreferencesId}/image-size"
 	const val LIBRARIES_DISPLAY_IMAGE_TYPE = "/libraries/display/{itemId}/{displayPreferencesId}/image-type"
 	const val LIBRARIES_DISPLAY_GRID = "/libraries/display/{itemId}/{displayPreferencesId}/grid"
-	const val HOME = "/home"
-	const val HOME_SECTION = "/home/section/{index}"
 	const val HOME_NEXT_UP_CUTOFF = "/home/next-up-cutoff"
 	const val LIVETV_GUIDE_FILTERS = "/livetv/guide/filters"
 	const val LIVETV_GUIDE_OPTIONS = "/livetv/guide/options"
@@ -208,12 +204,6 @@ val routes = mapOf<String, RouteComposable>(
 		SettingsLibrariesDisplayGridScreen(context.parameters["itemId"]?.toUUIDOrNull()!!, context.parameters["displayPreferencesId"]!!)
 	},
 	Routes.DISCOVERY to { org.jellyfin.androidtv.ui.settings.screen.home.SettingsDiscoveryScreen() },
-    Routes.HOME to {
-		SettingsHomeScreen()
-	},
-	Routes.HOME_SECTION to { context ->
-		SettingsHomeSectionScreen(context.parameters["index"]?.toInt()!!)
-	},
 	Routes.HOME_NEXT_UP_CUTOFF to {
 		SettingsHomeNextUpCutoffScreen()
 	},

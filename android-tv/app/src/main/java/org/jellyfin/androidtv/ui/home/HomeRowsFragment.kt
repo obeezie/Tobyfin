@@ -26,7 +26,6 @@ import kotlinx.coroutines.withContext
 import kotlinx.coroutines.withTimeout
 import org.jellyfin.androidtv.auth.repository.UserRepository
 import org.jellyfin.androidtv.constant.CustomMessage
-import org.jellyfin.androidtv.constant.HomeSectionType
 import org.jellyfin.androidtv.constant.LiveTvOption
 import org.jellyfin.androidtv.constant.QueryType
 import org.jellyfin.androidtv.data.model.DataRefreshService
@@ -54,6 +53,7 @@ import org.jellyfin.androidtv.util.KeyProcessor
 import org.jellyfin.playback.core.PlaybackManager
 import org.jellyfin.sdk.api.client.ApiClient
 import org.jellyfin.sdk.api.sockets.subscribe
+import org.jellyfin.sdk.model.api.CollectionType
 import org.jellyfin.sdk.model.api.LibraryChangedMessage
 import org.jellyfin.sdk.model.api.UserDataChangedMessage
 import org.koin.android.ext.android.inject
@@ -79,7 +79,6 @@ class HomeRowsFragment : RowsSupportFragment(), AudioEventListener, View.OnKeyLi
 	private val notificationsRepository by inject<NotificationsRepository>()
 	private val userRepository by inject<UserRepository>()
 	private val userPreferences by inject<UserPreferences>()
-	private val userSettingPreferences by inject<UserSettingPreferences>()
 	private val userViewsRepository by inject<UserViewsRepository>()
 	private val dataRefreshService by inject<DataRefreshService>()
 	private val customMessageRepository by inject<CustomMessageRepository>()
@@ -170,48 +169,43 @@ class HomeRowsFragment : RowsSupportFragment(), AudioEventListener, View.OnKeyLi
 				userRepository.currentUser.filterNotNull().first()
 			}
 
-			// Start out with default sections
-			val savedSections = userSettingPreferences.activeHomesections
-            val layout = discoveryPreferences.read()
-            val homesections = savedSections.filter { it !in listOf(HomeSectionType.LATEST_MEDIA, HomeSectionType.RESUME, HomeSectionType.NEXT_UP) }
-            val userViews = userViewsRepository.views.first()
+			val layout = discoveryPreferences.read()
+			val userViews = userViewsRepository.views.first()
+			val otherViews = userViews.filter { it.collectionType !in listOf(CollectionType.MOVIES, CollectionType.TVSHOWS) }
 
 			// Make sure the rows are empty
 			val rows = mutableListOf<HomeFragmentRow>()
+			// Rows that follow Discovery's poster size; the former Home section rows keep their own size.
+			val scaledRows = mutableSetOf<HomeFragmentRow>()
 
 			// Check for coroutine cancellation
 			if (!isActive) return@launch
 
-			// Discovery owns its complete order; other Home sections retain their saved order.
-            for (id in layout.visible) when (id) {
-                "resume" -> rows.add(helper.loadResumeVideo())
-                "nextup" -> rows.add(helper.loadNextUp())
-                "latestmovies" -> rows.add(helper.loadRecentlyAdded(userViews.filter { it.collectionType == org.jellyfin.sdk.model.api.CollectionType.MOVIES }))
-                "latesttv" -> rows.add(helper.loadRecentlyAdded(userViews.filter { it.collectionType == org.jellyfin.sdk.model.api.CollectionType.TVSHOWS }))
-                else -> if (id.startsWith("genre:")) rows.add(HomeFragmentMovieGenresRow(userRepository, userViews, id))
-            }
-            val discoveryRowCount = rows.size
-
-            // Actually add the remaining sections
-			for (section in homesections) when (section) {
-				HomeSectionType.LATEST_MEDIA -> rows.add(helper.loadRecentlyAdded(userViews))
-				HomeSectionType.LIBRARY_TILES_SMALL -> rows.add(HomeFragmentViewsRow(small = false))
-				HomeSectionType.LIBRARY_BUTTONS -> rows.add(HomeFragmentViewsRow(small = true))
-				HomeSectionType.RESUME -> rows.add(helper.loadResumeVideo())
-				HomeSectionType.RESUME_AUDIO -> rows.add(helper.loadResumeAudio())
-				HomeSectionType.RESUME_BOOK -> Unit // Books are not (yet) supported
-				HomeSectionType.ACTIVE_RECORDINGS -> rows.add(helper.loadLatestLiveTvRecordings())
-				HomeSectionType.NEXT_UP -> rows.add(helper.loadNextUp())
-				HomeSectionType.LIVE_TV -> if (currentUser.policy?.enableLiveTvAccess == true) {
-					rows.add(HomeFragmentLiveTVRow(requireActivity(), userRepository))
-					rows.add(helper.loadOnNow())
+			// Discovery decides every row and its order, including the former Home section rows.
+			for (id in layout.visible) {
+				val scaled = when (id) {
+					"resume" -> helper.loadResumeVideo()
+					"nextup" -> helper.loadNextUp()
+					"latestmovies" -> helper.loadRecentlyAdded(userViews.filter { it.collectionType == CollectionType.MOVIES })
+					"latesttv" -> helper.loadRecentlyAdded(userViews.filter { it.collectionType == CollectionType.TVSHOWS })
+					else -> if (id.startsWith("genre:")) HomeFragmentMovieGenresRow(userRepository, userViews, id) else null
 				}
-
-				HomeSectionType.NONE -> Unit
+				if (scaled != null) {
+					rows.add(scaled)
+					scaledRows.add(scaled)
+					continue
+				}
+				when (id) {
+					"mymedia" -> rows.add(HomeFragmentViewsRow(small = false))
+					"resumeaudio" -> rows.add(helper.loadResumeAudio())
+					"activerecordings" -> rows.add(helper.loadLatestLiveTvRecordings())
+					"livetv" -> if (currentUser.policy?.enableLiveTvAccess == true) {
+						rows.add(HomeFragmentLiveTVRow(requireActivity(), userRepository))
+						rows.add(helper.loadOnNow())
+					}
+					"latestother" -> rows.add(helper.loadRecentlyAdded(otherViews))
+				}
 			}
-
-			rows.add(helper.loadRecentlyAdded(userViews.filter { it.collectionType !in listOf(
-                org.jellyfin.sdk.model.api.CollectionType.MOVIES, org.jellyfin.sdk.model.api.CollectionType.TVSHOWS) }))
 
             // Add sections to layout
 			withContext(Dispatchers.Main) {
@@ -240,8 +234,8 @@ class HomeRowsFragment : RowsSupportFragment(), AudioEventListener, View.OnKeyLi
 				try {
 					notificationsRow.addToRowsAdapter(requireContext(), cardPresenter, sourceRows)
 					nowPlaying.addToRowsAdapter(requireContext(), cardPresenter, sourceRows)
-					for ((index, row) in rows.withIndex()) row.addToRowsAdapter(requireContext(),
-						if (index < discoveryRowCount) discoveryPresenter else cardPresenter, sourceRows)
+					for (row in rows) row.addToRowsAdapter(requireContext(),
+						if (row in scaledRows) discoveryPresenter else cardPresenter, sourceRows)
 				} finally {
 					HomeRowLoadQueue.current = null
 				}

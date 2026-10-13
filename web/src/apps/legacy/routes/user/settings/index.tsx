@@ -147,9 +147,9 @@ const UserSettingsPage: FC = () => {
                         <SettingsItem
                             className='lnkHomePreferences'
                             href={`#/mypreferenceshome?userId=${userId}`}
-                            icon='home'
-                            title={globalize.translate('Home')}
-                            description='Libraries and home screen options'
+                            icon='video_library'
+                            title={globalize.translate('HeaderLibraries')}
+                            description='Order, My Media and Recently Added'
                         />
                     </SettingsGroup>
 

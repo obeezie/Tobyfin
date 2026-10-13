@@ -75,6 +75,10 @@ import org.jellyfin.androidtv.ui.startup.fragment.onBackPress
 import org.jellyfin.sdk.api.client.ApiClient
 import org.jellyfin.sdk.api.sockets.subscribe
 import org.jellyfin.sdk.model.api.LibraryChangedMessage
+import org.jellyfin.androidtv.preference.UserPreferences
+import org.jellyfin.androidtv.ui.navigation.LocalRouter
+import org.jellyfin.androidtv.ui.settings.Routes
+import org.jellyfin.androidtv.ui.settings.compat.rememberPreference
 import org.koin.compose.koinInject
 
 private val Cyan = WhosWatchingStyle.Cyan
@@ -96,6 +100,10 @@ fun SettingsDiscoveryScreen() {
 	val messages = koinInject<CustomMessageRepository>()
 	val api = koinInject<ApiClient>()
 	val users = koinInject<UserRepository>()
+	val router = LocalRouter.current
+	val userPreferences = koinInject<UserPreferences>()
+	val nextUpMaxDays by rememberPreference(userPreferences, UserPreferences.homeNextUpMaxDays)
+	val nextUpCutoff = getNextUpCutoffOptions().firstOrNull { it.first == nextUpMaxDays }?.takeIf { it.first > 0 }?.second
 	val account = remember { preferences.accountKey }
 	val userId = remember { users.currentUser.value?.id }
 	var layout by remember { mutableStateOf(preferences.read()) }
@@ -243,13 +251,17 @@ fun SettingsDiscoveryScreen() {
 				Pill(if (history.isEmpty()) "↶ Undo" else "↶ Undo", enabled = history.isNotEmpty() && !busy, onClick = ::undo)
 			}
 
-			Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(10.dp)) {
+			Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(10.dp)) {
 				Label("Poster size")
 				listOf("small" to "Small", "medium" to "Medium", "large" to "Large").forEach { (value, title) ->
 					SizeOption(title, value, selected = layout.size == value, enabled = !busy) {
 						if (layout.size != value) change(layout.copy(size = value), "Poster size: $title")
 					}
 				}
+				// Moved here from Settings > Customization > Home, which Discovery replaces.
+				Spacer(Modifier.weight(1f))
+				Label("Up Next shows")
+				Pill(nextUpCutoff?.let { "Last $it" } ?: "Any time", enabled = !busy) { router.push(Routes.HOME_NEXT_UP_CUTOFF) }
 			}
 
 			Row(Modifier.weight(1f), horizontalArrangement = Arrangement.spacedBy(28.dp)) {

@@ -16,7 +16,8 @@ fun AppTheme(content: @Composable () -> Unit) {
         // Tobyfin: dark navy with purple-to-cyan accents (prototype/tobyfin-menus-prototype.html).
         darkColors(
             primary = Color(0xFF3CC4F5),
-            primaryVariant = Color(0xFF080C1D),
+            // Must differ from background: Surface picks its text color by matching these colors in order.
+            primaryVariant = Color(0xFF1FA3D6),
             secondary = Color(0xFFB27DFF),
             background = Color(0xFF080C1D),
             surface = Color(0xFF121A35),

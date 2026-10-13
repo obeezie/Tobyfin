@@ -53,8 +53,8 @@ export function getDefaultSection(index) {
     return DEFAULT_SECTIONS[index];
 }
 
-function getAllSectionsToShow(userSettings) {
-    const sections = selectHomeSections(userSettings, getDiscoveryLayout());
+function getAllSectionsToShow() {
+    const sections = selectHomeSections(getDiscoveryLayout());
 
     // Ensure libraries are visible in TV layout
     if (
@@ -82,7 +82,7 @@ export function loadSections(elem, apiClient, user, userSettings) {
 
             if (userViews.length) {
                 // TV layout can have an extra section to ensure libraries are visible
-                const sectionsToShow = getAllSectionsToShow(userSettings);
+                const sectionsToShow = getAllSectionsToShow();
                 const totalSectionCount = sectionsToShow.length;
                 for (let i = 0; i < totalSectionCount; i++) {
                     html += '<div class="verticalSection section' + i + '"></div>';

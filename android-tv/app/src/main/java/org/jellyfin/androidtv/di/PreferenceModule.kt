@@ -14,7 +14,10 @@ val preferenceModule = module {
 	single { LiveTvPreferences(get()) }
 	single { UserSettingPreferences(get()) }
 	single { UserPreferences(get()) }
-    single { org.jellyfin.androidtv.preference.DiscoveryPreferences(get(), get(), get()) }
+    single { org.jellyfin.androidtv.preference.DiscoveryPreferences(get(), get(), get()) {
+        val userSettings = get<org.jellyfin.androidtv.preference.UserSettingPreferences>()
+        userSettings.homesections.map { userSettings[it].serializedName }
+    } }
 	single { SystemPreferences(get()) }
 	single { TelemetryPreferences(get()) }
 }

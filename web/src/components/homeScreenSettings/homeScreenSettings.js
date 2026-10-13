@@ -10,7 +10,6 @@ import focusManager from '../focusManager';
 import globalize from '../../lib/globalize';
 import loading from '../loading/loading';
 import Events from '../../utils/events.ts';
-import homeSections from '../homesections/homesections';
 import dom from '../../utils/dom';
 import '../listview/listview.scss';
 import '../../elements/emby-select/emby-select';
@@ -18,8 +17,6 @@ import '../../elements/emby-checkbox/emby-checkbox';
 import toast from '../toast/toast';
 import template from './homeScreenSettings.template.html';
 import { LibraryTab } from '../../types/libraryTab.ts';
-
-const numConfigurableSections = 10;
 
 function renderViews(page, user, result) {
     let folderHtml = '';
@@ -322,24 +319,8 @@ function renderViewOrder(context, user, result) {
     context.querySelector('.viewOrderList').innerHTML = html;
 }
 
+// Tobyfin: Home's rows are chosen in Customize Discovery, so this page has no Home section slots.
 function updateHomeSectionValues(context, userSettings) {
-    for (let i = 1; i <= numConfigurableSections; i++) {
-        const select = context.querySelector(`#selectHomeSection${i}`);
-        const defaultValue = homeSections.getDefaultSection(i - 1);
-
-        const option = select.querySelector(`option[value="${defaultValue}"]`) || select.querySelector('option[value=""]');
-
-        const userValue = userSettings.get(`homesection${i - 1}`);
-
-        if (option) option.value = '';
-
-        if (userValue === defaultValue || !userValue) {
-            select.value = '';
-        } else {
-            select.value = userValue;
-        }
-    }
-
     context.querySelector('.selectTVHomeScreen').value = userSettings.get('tvhome') || '';
 }
 
@@ -507,17 +488,6 @@ async function saveUser(context, user, userSettingsInstance, apiClient) {
 
     userSettingsInstance.set('tvhome', context.querySelector('.selectTVHomeScreen').value);
 
-    userSettingsInstance.set('homesection0', context.querySelector('#selectHomeSection1').value);
-    userSettingsInstance.set('homesection1', context.querySelector('#selectHomeSection2').value);
-    userSettingsInstance.set('homesection2', context.querySelector('#selectHomeSection3').value);
-    userSettingsInstance.set('homesection3', context.querySelector('#selectHomeSection4').value);
-    userSettingsInstance.set('homesection4', context.querySelector('#selectHomeSection5').value);
-    userSettingsInstance.set('homesection5', context.querySelector('#selectHomeSection6').value);
-    userSettingsInstance.set('homesection6', context.querySelector('#selectHomeSection7').value);
-    userSettingsInstance.set('homesection7', context.querySelector('#selectHomeSection8').value);
-    userSettingsInstance.set('homesection8', context.querySelector('#selectHomeSection9').value);
-    userSettingsInstance.set('homesection9', context.querySelector('#selectHomeSection10').value);
-
     const selectLandings = context.querySelectorAll('.selectLanding');
     for (i = 0, length = selectLandings.length; i < length; i++) {
         const selectLanding = selectLandings[i];
@@ -584,12 +554,7 @@ function onChange(e) {
 }
 
 function embed(options, self) {
-    let workingTemplate = template;
-    for (let i = 1; i <= numConfigurableSections; i++) {
-        workingTemplate = workingTemplate.replace(`{section${i}label}`, globalize.translate('LabelHomeScreenSectionValue', i));
-    }
-
-    options.element.innerHTML = globalize.translateHtml(workingTemplate, 'core');
+    options.element.innerHTML = globalize.translateHtml(template, 'core');
 
     options.element.querySelector('.viewOrderList').addEventListener('click', onSectionOrderListClick);
     options.element.querySelector('form').addEventListener('submit', onSubmit.bind(self));

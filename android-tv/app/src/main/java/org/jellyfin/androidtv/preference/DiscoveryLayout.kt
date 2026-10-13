@@ -10,17 +10,28 @@ data class DiscoveryLayout(
     val size: String = "medium",
     val removedGenres: Set<String> = emptySet(),
     val customGenres: List<DiscoveryGenre> = emptyList(),
+    /** The former Home section rows this layout has placed; null in layouts saved before they joined Discovery. */
+    val known: Set<String>? = null,
 ) {
     val titles: Map<String, String> get() = sectionTitles + customGenres.associate { it.id to it.title }
-    fun normalized(): DiscoveryLayout {
+    /**
+     * [slots] are the account's old Home section slots. A layout that has not placed the former slot rows yet starts
+     * each one On Home only if the slots showed it, so Home looks the same after the update.
+     */
+    fun normalized(slots: List<String> = DEFAULT_SLOTS): DiscoveryLayout {
         val valid = customGenres.filter { it.title.isNotBlank() && runCatching { java.util.UUID.fromString(it.genreId) }.isSuccess }
             .map { it.copy(genreId = java.util.UUID.fromString(it.genreId).toString(), title = it.title.trim()) }
             .distinctBy { it.genreId }
         val removed = removedGenres.filter { it.startsWith("genre:") && it in sectionTitles }.toSet()
         val ids = (sectionTitles.keys + valid.map { it.id }) - removed
+        val newSlotRows = slotRows.filter { (id, types) ->
+            id !in known.orEmpty() && types.isNotEmpty() && types.none { it in slots }
+        }.keys
         return copy(
             order = (order.filter { it in ids } + ids).distinct(),
-            hidden = hidden.filter { it in ids }.toSet(),
+            // Placed rows go first, so Add to Home (newest first) lists them after rows the person took off.
+            hidden = newSlotRows + hidden.filter { it in ids },
+            known = slotRows.keys,
             size = size.takeIf { it in listOf("small", "medium", "large") } ?: "medium",
             customGenres = valid,
             removedGenres = removed,
@@ -101,12 +112,28 @@ data class DiscoveryLayout(
             "genre:Fantasy" to "Fantasy", "genre:Adventure" to "Adventure",
             "genre:Crime & Mystery" to "Crime & Mystery", "genre:Animation" to "Animation",
             "genre:Family" to "Family", "genre:Romance" to "Romance", "genre:Documentaries" to "Documentaries",
+            "mymedia" to "My Media", "resumeaudio" to "Continue Listening", "livetv" to "Live TV",
+            "activerecordings" to "Recordings", "latestother" to "Recently Added Music & More",
         )
-        /** Continue Watching, Up Next and the Recently Added rows are built in; everything else is a genre. */
+        /**
+         * Rows that used to come from the Home section slots, with the slot types that showed them. "Recently Added
+         * Music & More" was always shown. Books are not supported here, so Continue Reading is left out.
+         */
+        val slotRows = linkedMapOf(
+            "mymedia" to setOf("smalllibrarytiles", "librarybuttons"),
+            "resumeaudio" to setOf("resumeaudio"),
+            "livetv" to setOf("livetv"),
+            "activerecordings" to setOf("activerecordings"),
+            "latestother" to emptySet(),
+        )
+        /** The Home section slots' defaults, used when an account never set them. */
+        val DEFAULT_SLOTS = listOf("smalllibrarytiles", "resume", "resumeaudio", "resumebook", "livetv", "nextup", "latestmedia")
+        /** Continue Watching, Up Next, the Recently Added rows and the former Home section rows are built in; everything else is a genre. */
         fun isBuiltIn(id: String) = !id.startsWith("genre:")
 
         private val json = Json { ignoreUnknownKeys = true }
-        fun decode(value: String?) = runCatching { json.decodeFromString<DiscoveryLayout>(value.orEmpty()).normalized() }.getOrDefault(DiscoveryLayout())
+        fun decode(value: String?, slots: List<String> = DEFAULT_SLOTS) =
+            (runCatching { json.decodeFromString<DiscoveryLayout>(value.orEmpty()) }.getOrNull() ?: DiscoveryLayout()).normalized(slots)
         fun encode(value: DiscoveryLayout) = json.encodeToString(value.normalized())
     }
 }

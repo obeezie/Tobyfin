@@ -17,16 +17,16 @@ describe('On Home and Add to Home', () => {
         let layout = takeOff(normalizeLayout(null), 'resume');
         layout = putOn(layout, 'resume');
         expect(onHome(layout).at(-1)).toBe('resume');
-        expect(layout.hidden).toEqual([]);
+        expect(layout.hidden).toEqual(['activerecordings']);
     });
 
     it('server genres can be added, and ones matching a built-in row are not offered twice', () => {
         const layout = normalizeLayout(null);
         const offered = addToHomeRows(layout, [western, serverAction]).map(row => row.title);
-        expect(offered).toEqual(['Western']);
+        expect(offered).toEqual(['Recordings', 'Western']);
         const added = putOn(layout, western);
         expect(onHome(added).at(-1)).toBe(western.id);
-        expect(addToHomeRows(added, [western])).toEqual([]);
+        expect(addToHomeRows(added, [western]).map(row => row.id)).toEqual(['activerecordings']);
     });
 
     it('a removed built-in genre is offered again and comes back at the end', () => {
@@ -39,7 +39,7 @@ describe('On Home and Add to Home', () => {
         const layout = takeOff(normalizeLayout(null), 'nextup');
         const moved = moveOnHome(layout, 'genre:Horror', 1);
         expect(onHome(moved).slice(0, 2)).toEqual(['resume', 'genre:Horror']);
-        expect(moved.hidden).toEqual(['nextup']);
+        expect(moved.hidden).toEqual(['activerecordings', 'nextup']);
         expect(moveOnHome(layout, 'nextup', 0)).toBe(layout);
     });
 

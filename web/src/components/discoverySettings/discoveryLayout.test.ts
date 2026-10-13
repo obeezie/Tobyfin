@@ -8,14 +8,14 @@ describe('saved discovery layouts', () => {
         writeLayout(localStorage, a, { size: 'large', hidden: ['genre:Action'] });
         expect(readLayout(localStorage, a).size).toBe('large');
         expect(readLayout(localStorage, layoutKey('server1', 'user2')).size).toBe('medium');
-        expect(readLayout(localStorage, layoutKey('server2', 'user1')).hidden).toEqual([]);
+        expect(readLayout(localStorage, layoutKey('server2', 'user1')).hidden).toEqual(['activerecordings']);
         expect(readLayout(sessionStorage, a).size).toBe('medium');
     });
     it('repairs old or invalid data, removes duplicates and appends newly available sections', () => {
         const layout = normalizeLayout({ order: ['genre:Horror', 'removed', 'genre:Horror'], hidden: ['removed', 'resume'], size: 'huge' });
         expect(layout.order[0]).toBe('genre:Horror');
         expect(layout.order).toHaveLength(sections.length);
-        expect(layout.hidden).toEqual(['resume']);
+        expect(layout.hidden).toEqual(['activerecordings', 'resume']);
         expect(layout.size).toBe('medium');
         localStorage.setItem('broken', '{oops');
         expect(readLayout(localStorage, 'broken')).toEqual(normalizeLayout(null));
@@ -23,7 +23,7 @@ describe('saved discovery layouts', () => {
     it('supports hiding everything and restores defaults explicitly', () => {
         const layout = normalizeLayout({ hidden: sections.map(section => section.id) });
         expect(visibleSections(layout)).toEqual([]);
-        expect(normalizeLayout(null).hidden).toEqual([]);
+        expect(normalizeLayout(null).hidden).toEqual(['activerecordings']);
     });
     it('moves a section without changing others and selects genres in the saved order', () => {
         const original = normalizeLayout(null);
@@ -62,7 +62,7 @@ describe('server genre selections', () => {
         const action = { ...genre, title: 'Action' };
         const hidden = normalizeLayout({ hidden: ['genre:Action'] });
         expect(addGenre(hidden, action).customGenres).toEqual([]);
-        expect(addGenre(hidden, action).hidden).toEqual([]);
+        expect(addGenre(hidden, action).hidden).toEqual(['activerecordings']);
     });
 });
 

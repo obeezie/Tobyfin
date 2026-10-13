@@ -70,7 +70,7 @@ describe('Customize Discovery editor', () => {
         await flush();
         click('.dRow[data-id="genre:Horror"] .dSwitch');
         tab('add');
-        expect(titles()).toEqual(['Horror', 'Western']);
+        expect(titles()).toEqual(['Horror', 'Recordings', 'Western']);
         click('.dRow.off:last-child [data-action="add"]');
         const shown = onHome(getDiscoveryLayout());
         expect(shown[shown.length - 1]).toBe('genre:server:' + western.Id);
@@ -117,7 +117,7 @@ describe('Customize Discovery editor', () => {
         click('[data-action="reset"]');
         click('[data-action="confirm-reset"]');
         expect(getDiscoveryLayout().size).toBe('medium');
-        expect(getDiscoveryLayout().hidden).toEqual([]);
+        expect(getDiscoveryLayout().hidden).toEqual(['activerecordings']);
     });
 
     it('does not save into another account if the signed-in account changed', () => {
@@ -125,9 +125,9 @@ describe('Customize Discovery editor', () => {
         account.user = 'two';
         click('.dRow[data-id="resume"] .dSwitch');
         expect(document.querySelector('.dSnack')?.textContent).toContain('account changed');
-        expect(getDiscoveryLayout().hidden).toEqual([]);
+        expect(getDiscoveryLayout().hidden).toEqual(['activerecordings']);
         account.user = 'one';
-        expect(getDiscoveryLayout().hidden).toEqual([]);
+        expect(getDiscoveryLayout().hidden).toEqual(['activerecordings']);
     });
 
     it('marks built-in genres the server has nothing for once its genres load', async () => {

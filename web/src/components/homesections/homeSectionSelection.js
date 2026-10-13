@@ -1,12 +1,10 @@
-import { DEFAULT_SECTIONS, HomeSectionType } from 'constants/homeSectionType';
+import { HomeSectionType } from 'constants/homeSectionType';
 import { normalizeLayout, visibleSections } from '../discoverySettings/discoveryLayout';
 
-export function selectHomeSections(userSettings, layout = normalizeLayout(null)) {
-    const managed = [HomeSectionType.MovieDiscovery, HomeSectionType.LatestMedia, HomeSectionType.Resume, HomeSectionType.NextUp];
-    const extras = DEFAULT_SECTIONS.map((fallback, index) => {
-        const section = userSettings.get('homesection' + index) || fallback;
-        return section === 'folders' ? DEFAULT_SECTIONS[0] : section;
-    }).filter(section => section !== HomeSectionType.None && !managed.includes(section));
-    const ordered = visibleSections(layout);
-    return [...ordered, ...new Set(extras), 'latestother'];
+/**
+ * Home's rows, in order. Customize Discovery decides all of them; the former Home section slots are Discovery rows
+ * now ("My Media" draws the library tiles).
+ */
+export function selectHomeSections(layout = normalizeLayout(null)) {
+    return visibleSections(layout).map(id => (id === 'mymedia' ? HomeSectionType.SmallLibraryTiles : id));
 }

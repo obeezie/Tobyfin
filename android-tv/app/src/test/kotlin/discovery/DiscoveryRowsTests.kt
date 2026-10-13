@@ -27,7 +27,7 @@ class DiscoveryRowsTests : FunSpec({
 		layout.addToHomeRows(listOf(western, serverAction)).map { it.title } shouldBe listOf("Western")
 		val added = layout.putOn(western)
 		added.onHome.last() shouldBe western.id
-		added.addToHomeRows(listOf(western)) shouldBe emptyList()
+		added.addToHomeRows(listOf(western)).map { it.id } shouldBe listOf("activerecordings")
 	}
 
 	test("a removed built-in genre is offered again and comes back at the end") {

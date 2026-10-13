@@ -1,14 +1,37 @@
 import { getDiscoveryGenres } from '../homesections/sections/moviePaging';
 
 export const genreId = genre => genre.id || 'genre:' + genre.title;
+/**
+ * Rows that used to come from the Home section slots in Settings > Home. They are built-in Discovery rows now; each
+ * maps to the Home section type that draws it.
+ */
+export const slotRows = [
+    { id: 'mymedia', title: 'My Media', types: [ 'smalllibrarytiles', 'librarybuttons' ] },
+    { id: 'resumeaudio', title: 'Continue Listening', types: [ 'resumeaudio' ] },
+    { id: 'resumebook', title: 'Continue Reading', types: [ 'resumebook' ] },
+    { id: 'livetv', title: 'Live TV', types: [ 'livetv' ] },
+    { id: 'activerecordings', title: 'Recordings', types: [ 'activerecordings' ] },
+    { id: 'latestother', title: 'Recently Added Music & More', types: [] }
+];
+/** The Home section slots' defaults, used when an account never set them. */
+export const DEFAULT_SLOTS = [ 'smalllibrarytiles', 'resume', 'resumeaudio', 'resumebook', 'livetv', 'nextup', 'latestmedia', 'moviediscovery', 'none', 'none' ];
 export const sections = [
     { id: 'resume', title: 'Continue Watching' },
     { id: 'nextup', title: 'Up Next' },
     { id: 'latestmovies', title: 'Recently Added Movies' },
     { id: 'latesttv', title: 'Recently Added TV' },
-    ...getDiscoveryGenres().map(genre => ({ id: genreId(genre), title: genre.title }))
+    ...getDiscoveryGenres().map(genre => ({ id: genreId(genre), title: genre.title })),
+    ...slotRows.map(({ id, title }) => ({ id, title }))
 ];
-export function normalizeLayout(value) {
+/** Whether the old Home section slots showed [row]. "Recently Added Music & More" was always shown. */
+function shownBySlots(row, slots) {
+    return !row.types.length || row.types.some(type => slots.includes(type));
+}
+/**
+ * [slots] are the account's Home section slots. A layout saved before the slot rows joined Discovery has no `known`
+ * list: each slot row starts On Home only if the slots showed it, so Home looks the same after the update.
+ */
+export function normalizeLayout(value, slots = DEFAULT_SLOTS) {
     const customGenres = [...new Map((Array.isArray(value?.customGenres) ? value.customGenres : [])
         .filter(genre => typeof genre?.title === 'string' && genre.title.trim()
             && typeof genre.genreId === 'string' && /^[a-f0-9]{32}$|^[a-f0-9]{8}(-[a-f0-9]{4}){3}-[a-f0-9]{12}$/i.test(genre.genreId))
@@ -20,12 +43,17 @@ export function normalizeLayout(value) {
         .filter(id => sections.some(section => section.id === id && id.startsWith('genre:'))))];
     const ids = [...sections, ...customGenres].map(section => section.id).filter(id => !removedGenres.includes(id));
     const order = Array.isArray(value?.order) ? value.order.filter(id => ids.includes(id)) : [];
+    const known = Array.isArray(value?.known) ? value.known : [];
+    const hidden = Array.isArray(value?.hidden) ? value.hidden.filter(id => ids.includes(id)) : [];
+    const newSlotRows = slotRows.filter(row => !known.includes(row.id) && !shownBySlots(row, slots)).map(row => row.id);
     return {
         customGenres,
         removedGenres,
         order: [...new Set([...order, ...ids])],
-        hidden: Array.isArray(value?.hidden) ? [...new Set(value.hidden.filter(id => ids.includes(id)))] : [],
-        size: ['small', 'medium', 'large'].includes(value?.size) ? value.size : 'medium'
+        // Placed rows go first, so Add to Home (newest first) lists them after rows the person took off.
+        hidden: [...new Set([...newSlotRows, ...hidden])],
+        size: ['small', 'medium', 'large'].includes(value?.size) ? value.size : 'medium',
+        known: slotRows.map(row => row.id)
     };
 }
 export function visibleSections(layout) {
@@ -45,11 +73,11 @@ export function moveSection(layout, id, delta) {
 export function layoutKey(serverId, userId) {
     return serverId && userId ? 'discovery-layout-v1:' + JSON.stringify([serverId, userId]) : null;
 }
-export function readLayout(storage, key) {
+export function readLayout(storage, key, slots = DEFAULT_SLOTS) {
     try {
-        return normalizeLayout(key ? JSON.parse(storage.getItem(key)) : null);
+        return normalizeLayout(key ? JSON.parse(storage.getItem(key)) : null, slots);
     } catch {
-        return normalizeLayout(null);
+        return normalizeLayout(null, slots);
     }
 }
 export function writeLayout(storage, key, value) {
@@ -124,7 +152,7 @@ export function addToHomeRows(layout, catalog, query = '') {
     const q = query.trim().toLocaleLowerCase();
     return [...off, ...removed, ...server].filter(row => row.title.toLocaleLowerCase().includes(q));
 }
-/** Continue Watching, Up Next and the Recently Added rows are built in; everything else is a genre. */
+/** Continue Watching, Up Next, the Recently Added rows and the former Home section rows are built in; everything else is a genre. */
 export function isBuiltIn(id) {
     return !id.startsWith('genre:');
 }

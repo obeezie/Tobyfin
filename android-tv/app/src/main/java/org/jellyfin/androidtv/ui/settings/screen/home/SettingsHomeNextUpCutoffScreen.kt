@@ -44,7 +44,7 @@ fun SettingsHomeNextUpCutoffScreen() {
 	SettingsColumn {
 		item {
 			ListSection(
-				overlineContent = { Text(stringResource(R.string.home_prefs).uppercase()) },
+				overlineContent = { Text("CUSTOMIZE DISCOVERY") },
 				headingContent = { Text(stringResource(R.string.home_next_up_max_days)) },
 			)
 		}

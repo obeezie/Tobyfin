@@ -23,7 +23,7 @@ class DiscoveryLayoutTests : FunSpec({
         val restored = DiscoveryLayout.decode(DiscoveryLayout.encode(layout))
         restored.visible.take(3) shouldBe listOf("genre:Horror", "latesttv", "resume")
         restored.visible.contains("nextup") shouldBe false
-        restored.order.size shouldBe 17
+        restored.order.size shouldBe 22
     }
     test("defaults are a new draft and cannot mutate saved data") {
         val saved = DiscoveryLayout.encode(DiscoveryLayout().move("genre:Horror", -6))
@@ -34,10 +34,10 @@ class DiscoveryLayoutTests : FunSpec({
     test("invalid and old preferences are repaired while preserving known choices") {
         val decoded = DiscoveryLayout.decode("""{"order":["genre:Horror","removed","genre:Horror"],"hidden":["resume","removed"],"size":"huge"}""")
         decoded.order.first() shouldBe "genre:Horror"
-        decoded.order.size shouldBe 17
-        decoded.hidden shouldBe setOf("resume")
+        decoded.order.size shouldBe 22
+        decoded.hidden shouldBe setOf("activerecordings", "resume")
         decoded.size shouldBe "medium"
-        DiscoveryLayout.decode("broken") shouldBe DiscoveryLayout()
+        DiscoveryLayout.decode("broken") shouldBe DiscoveryLayout().normalized()
     }
     test("all sections can be hidden and move boundaries are safe") {
         DiscoveryLayout(hidden = DiscoveryLayout.sectionTitles.keys).visible shouldBe emptyList()
@@ -60,6 +60,6 @@ class DiscoveryLayoutTests : FunSpec({
     test("adding an existing default shows it without creating a duplicate") {
         val genre = DiscoveryGenre("01234567-89ab-cdef-0123-456789abcdef", "Action")
         val layout = DiscoveryLayout(hidden = setOf("genre:Action")).addGenre(genre)
-        layout.hidden shouldBe emptySet()
+        layout.hidden shouldBe setOf("activerecordings")
         layout.customGenres shouldBe emptyList()
     }})

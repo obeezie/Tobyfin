@@ -5,10 +5,16 @@ import org.jellyfin.androidtv.auth.repository.UserRepository
 import org.jellyfin.sdk.api.client.ApiClient
 
 /** Local to this app installation, namespaced by server and account; no server preference writes. */
-class DiscoveryPreferences(context: Context, private val api: ApiClient, private val users: UserRepository) {
+class DiscoveryPreferences(
+    context: Context,
+    private val api: ApiClient,
+    private val users: UserRepository,
+    /** The account's old Home section slots, which decide where the former slot rows start out. */
+    private val slots: () -> List<String> = { DiscoveryLayout.DEFAULT_SLOTS },
+) {
     private val storage = context.getSharedPreferences("discovery-layouts-v1", Context.MODE_PRIVATE)
     val accountKey: String? get() = users.currentUser.value?.id?.let { api.baseUrl.toString() + "|" + it }
-    fun read(): DiscoveryLayout = DiscoveryLayout.decode(accountKey?.let { storage.getString(it, null) })
+    fun read(): DiscoveryLayout = DiscoveryLayout.decode(accountKey?.let { storage.getString(it, null) }, slots())
     fun save(value: DiscoveryLayout, expectedAccount: String?): Boolean {
         val key = accountKey ?: return false
         if (key != expectedAccount) return false

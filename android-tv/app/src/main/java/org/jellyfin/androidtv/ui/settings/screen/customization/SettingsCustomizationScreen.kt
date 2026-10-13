@@ -123,14 +123,5 @@ fun SettingsCustomizationScreen() {
 				modifier = Modifier.focusKey(Routes.LIBRARIES)
 			)
 		}
-
-		item {
-			ListButton(
-				leadingContent = { Icon(painterResource(R.drawable.ic_house), contentDescription = null) },
-				headingContent = { Text(stringResource(R.string.home_prefs)) },
-				onClick = { router.push(Routes.HOME) },
-				modifier = Modifier.focusKey(Routes.HOME)
-			)
-		}
 	}
 }

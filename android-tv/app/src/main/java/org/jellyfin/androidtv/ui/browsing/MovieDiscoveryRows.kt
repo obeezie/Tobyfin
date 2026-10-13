@@ -32,6 +32,17 @@ object MovieDiscoveryRows : org.koin.core.component.KoinComponent {
 		Genre(R.string.movie_genre_documentaries, setOf("Documentary", "Documentaries"), "genre:Documentaries"),
 	)
 
+	/**
+	 * A built-in genre row matches none of the server's genres ([serverGenres], by name), so Home skips it. Unknown
+	 * until the server's genres have loaded, when nothing is marked.
+	 */
+	fun hasNothingToShow(id: String, serverGenres: Collection<String>): Boolean {
+		if (serverGenres.isEmpty()) return false
+		val genre = genres.find { it.id == id } ?: return false
+		val names = serverGenres.map { it.lowercase() }.toSet()
+		return genre.filters.none { it.lowercase() in names }
+	}
+
 	@JvmStatic
 	@JvmOverloads
     fun genreRows(context: Context, parentId: UUID, layout: org.jellyfin.androidtv.preference.DiscoveryLayout = discoveryPreferences.read(), onlyId: String? = null): List<BrowseRowDef> =

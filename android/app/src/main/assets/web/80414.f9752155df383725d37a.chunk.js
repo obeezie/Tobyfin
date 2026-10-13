@@ -1,0 +1,1 @@
+"use strict";(self.webpackChunk=self.webpackChunk||[]).push([[80414],{80414:function(e,t){Object.defineProperty(t,"__esModule",{value:!0}),t.default=void 0;var u={lastWeek:"'ئ‍ۆتكەن' eeee 'دە' p",yesterday:"'تۈنۈگۈن دە' p",today:"'بۈگۈن دە' p",tomorrow:"'ئەتە دە' p",nextWeek:"eeee 'دە' p",other:"P"};t.default=function(e,t,o,r){return u[e]},e.exports=t.default}}]);

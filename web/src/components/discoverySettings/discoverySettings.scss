@@ -1,49 +1,449 @@
+// Customize Discovery, in Tobyfin's style (prototype/customize-discovery-prototype.html).
 .discoveryEditor {
-    background: #181c20;
-    color: #fff;
-    border: 1px solid #56616b;
-    border-radius: 12px;
-    width: min(560px, calc(100vw - 40px));
-    max-height: calc(100dvh - 48px);
-    padding: 0;
-    box-sizing: border-box;
-    overflow: hidden;
+    --d-night: #080c1d;
+    --d-panel: #121a35;
+    --d-row: #18213f;
+    --d-field: #0c1229;
+    --d-line: #263056;
+    --d-muted: #a2a8c6;
+    --d-faint: #6b7299;
+    --d-purple: #b27dff;
+    --d-cyan: #3cc4f5;
+    --d-danger: #ff8a8a;
+
+    background: var(--d-night) !important;
+    color: #eef0fa;
     display: flex;
     flex-direction: column;
-}
-.discoveryEditor::backdrop { background: rgba(0, 0, 0, 0.65); }
-.discoveryEditor p { color: #bac4cd; }
-.discoveryEditor button, .discoveryEditor select {
-    min-height: 44px;
-    min-width: 44px;
-    background: #303942;
-    color: #fff;
-    border: 1px solid #77838d;
-    border-radius: 5px;
-    padding: 8px;
-}
-.discoveryEditor button:disabled { opacity: 0.3; }
-.discoveryEditor button:focus-visible { outline: 2px solid #00a4dc; }
-.discoveryOrderRow { display: flex; align-items: center; gap: 6px; margin: 8px 0; }
-.discoveryOrderRow label { flex: 1; display: flex; align-items: center; min-height: 44px; }
-.discoveryOrderRow input { width: 20px; height: 20px; margin-right: 10px; }
-.discoveryActions { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 16px; }
-.discoveryError { color: #ff9d9d !important; }
-[data-discovery-size="small"] { --discovery-poster-width: 100px; --discovery-wide-width: 178px; }
-[data-discovery-size="medium"] { --discovery-poster-width: 140px; --discovery-wide-width: 249px; }
-[data-discovery-size="large"] { --discovery-poster-width: 180px; --discovery-wide-width: 320px; }
-[data-discovery-size] .portraitCard, [data-discovery-size] .overflowPortraitCard { width: var(--discovery-poster-width) !important; }
-[data-discovery-size] .backdropCard, [data-discovery-size] .overflowBackdropCard { width: var(--discovery-wide-width) !important; }
+    overflow: hidden;
+    font-family: inherit;
 
-.discoveryBody { overflow-y: auto; min-height: 0; padding: 20px; }
-.discoveryFooter {
-    flex-shrink: 0;
-    background: #181c20;
-    border-top: 1px solid #56616b;
-    padding: 12px 20px max(12px, env(safe-area-inset-bottom));
+    button {
+        font: inherit;
+        color: inherit;
+        cursor: pointer;
+    }
 }
-.discoveryFooter .discoveryActions { margin: 0; }
-.discoveryFooter .discoveryError:empty { display: none; }
-.discoveryActions [data-action="save"] { background: #007ba6; margin-left: auto; min-width: 80px; }
-.discoverySearch { display: block; width: 100%; box-sizing: border-box; min-height: 44px; margin: 8px 0; padding: 10px; background: #101419; color: white; border: 1px solid #77838d; border-radius: 5px; font: inherit; }
-.discoveryCatalog { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 12px; }
+
+.dHeader {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: max(12px, env(safe-area-inset-top)) 14px 10px;
+    flex-shrink: 0;
+
+    h2 {
+        margin: 0;
+        font-size: 1.35em;
+        font-weight: 700;
+    }
+}
+
+.dBack {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    border: 0;
+    background: transparent;
+    font-size: 1.4em !important;
+}
+
+.dScroll {
+    flex: 1;
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+}
+
+.dContent {
+    max-width: 640px;
+    margin: 0 auto;
+    padding: 0 14px calc(96px + env(safe-area-inset-bottom));
+}
+
+.dCard {
+    background: var(--d-panel);
+    border: 1px solid var(--d-line);
+    border-radius: 16px;
+    padding: 12px;
+
+    h3 {
+        margin: 0 0 10px;
+        font-size: 0.75em;
+        font-weight: 600;
+        letter-spacing: 0.06em;
+        text-transform: uppercase;
+        color: var(--d-muted);
+    }
+}
+
+.dSizes {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 8px;
+}
+
+.dSize {
+    display: grid;
+    justify-items: center;
+    gap: 6px;
+    padding: 10px 6px 8px;
+    border-radius: 12px;
+    border: 2px solid transparent;
+    background: var(--d-row);
+    font-weight: 600 !important;
+
+    &.selected {
+        border-color: var(--d-cyan);
+        background: #1b2652;
+    }
+}
+
+.dShape {
+    display: flex;
+    gap: 3px;
+    align-items: flex-end;
+    height: 34px;
+
+    i {
+        display: block;
+        border-radius: 3px;
+        background: linear-gradient(160deg, #3b4a8a, #222b55);
+    }
+}
+
+.dShape-small i {
+    width: 10px;
+    height: 15px;
+}
+
+.dShape-medium i {
+    width: 14px;
+    height: 21px;
+}
+
+.dShape-large i {
+    width: 20px;
+    height: 30px;
+}
+
+.dTabs {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 4px;
+    background: var(--d-panel);
+    border: 1px solid var(--d-line);
+    border-radius: 12px;
+    padding: 4px;
+    margin: 12px 0 10px;
+
+    button {
+        border: 0;
+        background: transparent;
+        padding: 9px;
+        border-radius: 9px;
+        color: var(--d-muted) !important;
+        font-weight: 600 !important;
+    }
+
+    [aria-selected='true'] {
+        background: #26305e;
+        color: #eef0fa !important;
+    }
+}
+
+.dRow {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    min-height: 56px;
+    background: var(--d-panel);
+    border: 1px solid var(--d-line);
+    border-radius: 14px;
+    padding: 8px 12px 8px 4px;
+    margin-bottom: 8px;
+    user-select: none;
+    touch-action: pan-y;
+    transition: transform 0.18s;
+    position: relative;
+
+    &.dragging {
+        z-index: 2;
+        background: #1b2652;
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.55), 0 0 0 2px var(--d-cyan);
+        transition: none;
+    }
+
+    &.off {
+        background: transparent;
+        border-style: dashed;
+        padding-left: 14px;
+    }
+}
+
+.dHandle {
+    width: 34px;
+    align-self: stretch;
+    display: grid;
+    place-items: center;
+    color: var(--d-muted);
+    font-size: 1.2em;
+    font-weight: 700;
+    letter-spacing: -2px;
+    cursor: grab;
+    touch-action: none;
+}
+
+.dBody {
+    flex: 1;
+    min-width: 0;
+    display: grid;
+    gap: 4px;
+}
+
+.dTitle {
+    font-weight: 600;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.dMeta {
+    display: flex;
+    gap: 6px;
+    align-items: center;
+}
+
+.dTag {
+    font-size: 0.68em;
+    font-weight: 600;
+    letter-spacing: 0.03em;
+    padding: 2px 7px;
+    border-radius: 99px;
+    background: #23305e;
+    color: #c7d3ff;
+}
+
+.dEmpty {
+    font-size: 0.75em;
+    color: var(--d-faint);
+}
+
+.dSwitch {
+    width: 44px;
+    height: 26px;
+    flex: none;
+    border: 0;
+    border-radius: 99px;
+    background: linear-gradient(90deg, var(--d-purple), var(--d-cyan));
+    position: relative;
+
+    &::after {
+        content: '';
+        position: absolute;
+        top: 4px;
+        left: 22px;
+        width: 18px;
+        height: 18px;
+        border-radius: 50%;
+        background: #fff;
+    }
+}
+
+.dAdd {
+    width: 40px;
+    height: 40px;
+    flex: none;
+    border: 0;
+    border-radius: 50%;
+    background: var(--d-row);
+    color: var(--d-cyan) !important;
+    font-size: 1.4em !important;
+}
+
+.dSearch {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    background: var(--d-field);
+    border: 1px solid var(--d-line);
+    border-radius: 12px;
+    padding: 10px 12px;
+    margin-bottom: 10px;
+    color: var(--d-faint);
+
+    input {
+        flex: 1;
+        min-width: 0;
+        border: 0;
+        background: transparent;
+        color: #eef0fa;
+        font: inherit;
+    }
+}
+
+.dNote,
+.dFoot {
+    color: var(--d-muted);
+    text-align: center;
+    font-size: 0.85em;
+}
+
+.dFoot { color: var(--d-faint); }
+
+.dReset {
+    display: block;
+    width: 100%;
+    margin-top: 14px;
+    padding: 12px;
+    border-radius: 12px;
+    border: 1px solid var(--d-line);
+    background: transparent;
+    color: var(--d-muted) !important;
+    font-weight: 600 !important;
+}
+
+.dOverlay {
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+
+    > * { pointer-events: auto; }
+}
+
+.dSnack {
+    position: absolute;
+    left: 12px;
+    right: 12px;
+    bottom: calc(16px + env(safe-area-inset-bottom));
+    max-width: 616px;
+    margin: 0 auto;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    padding: 12px 14px;
+    border-radius: 12px;
+    background: #2b3157;
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.5);
+
+    button {
+        border: 0;
+        background: transparent;
+        color: var(--d-cyan) !important;
+        font-weight: 700 !important;
+        padding: 4px 6px;
+    }
+}
+
+.dSheetWrap {
+    position: absolute;
+    inset: 0;
+}
+
+.dDim {
+    position: absolute;
+    inset: 0;
+    background: rgba(4, 6, 14, 0.6);
+}
+
+.dSheet {
+    position: absolute;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    max-width: 640px;
+    margin: 0 auto;
+    background: var(--d-panel);
+    border-radius: 20px 20px 0 0;
+    padding: 14px 14px calc(18px + env(safe-area-inset-bottom));
+
+    button {
+        display: block;
+        width: 100%;
+        text-align: left;
+        border: 0;
+        background: transparent;
+        padding: 13px 12px;
+        border-radius: 12px;
+    }
+
+    .dCancel { color: var(--d-muted) !important; }
+}
+
+.dSheet h4,
+.dConfirm h4 {
+    margin: 0 4px 8px;
+    font-size: 1.05em;
+    font-weight: 700;
+}
+
+.dConfirm {
+    position: absolute;
+    left: 24px;
+    right: 24px;
+    top: 50%;
+    max-width: 420px;
+    margin: 0 auto;
+    transform: translateY(-50%);
+    background: var(--d-panel);
+    border: 1px solid var(--d-line);
+    border-radius: 18px;
+    padding: 18px;
+
+    p {
+        margin: 0 0 14px;
+        color: var(--d-muted);
+    }
+}
+
+.dConfirmButtons {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 8px;
+
+    button {
+        border: 0;
+        padding: 12px;
+        border-radius: 12px;
+        background: var(--d-row);
+    }
+
+    .dDanger {
+        background: var(--d-danger);
+        color: #2a0b10 !important;
+        font-weight: 700 !important;
+    }
+}
+
+// Poster size on Home and the movie suggestions.
+[data-discovery-size="small"] {
+    --discovery-poster-width: 100px;
+    --discovery-wide-width: 178px;
+}
+
+[data-discovery-size="medium"] {
+    --discovery-poster-width: 140px;
+    --discovery-wide-width: 249px;
+}
+
+[data-discovery-size="large"] {
+    --discovery-poster-width: 180px;
+    --discovery-wide-width: 320px;
+}
+
+[data-discovery-size] .portraitCard,
+[data-discovery-size] .overflowPortraitCard {
+    width: var(--discovery-poster-width) !important;
+}
+
+[data-discovery-size] .backdropCard,
+[data-discovery-size] .overflowBackdropCard {
+    width: var(--discovery-wide-width) !important;
+}
+
+// Focus rings last, after every button and input rule above.
+.discoveryEditor button:focus-visible,
+.discoveryEditor input:focus-visible {
+    outline: 2px solid var(--d-cyan);
+    outline-offset: 2px;
+}

@@ -1,0 +1,1 @@
+"use strict";(self.webpackChunk=self.webpackChunk||[]).push([[89062],{89062:function(e,t){Object.defineProperty(t,"__esModule",{value:!0}),t.default=void 0;var u={lastWeek:"eeee'ที่แล้วเวลา' p",yesterday:"'เมื่อวานนี้เวลา' p",today:"'วันนี้เวลา' p",tomorrow:"'พรุ่งนี้เวลา' p",nextWeek:"eeee 'เวลา' p",other:"P"};t.default=function(e,t,o,r){return u[e]},e.exports=t.default}}]);

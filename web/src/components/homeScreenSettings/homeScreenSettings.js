@@ -1,4 +1,3 @@
-import { openDiscoveryEditor } from '../discoverySettings/discoveryEditor';
 
 import escapeHtml from 'escape-html';
 
@@ -415,7 +414,6 @@ function renderPerLibrarySettings(context, user, userViews, userSettings) {
 }
 
 function loadForm(context, user, userSettings, apiClient) {
-    context.querySelector('.btnCustomizeDiscovery').onclick = openDiscoveryEditor;
     context.querySelector('.chkHidePlayedFromLatest').checked = user.Configuration.HidePlayedInLatest || false;
 
     updateHomeSectionValues(context, userSettings);

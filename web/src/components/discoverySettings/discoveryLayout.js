@@ -78,3 +78,64 @@ export function removeGenre(layout, id) {
         removedGenres: [...(layout.removedGenres || []), id],
         customGenres: layout.customGenres.filter(genre => genre.id !== id) });
 }
+
+// Customize Discovery (2026-10-13 redesign): every row is either On Home or in Add to Home.
+// These keep the stored format above, so Home and saved layouts work unchanged.
+
+/** The rows On Home, in order. */
+export function onHome(layout) {
+    return visibleSections(layout);
+}
+/** Take a row off Home. It goes to the top of Add to Home. */
+export function takeOff(layout, id) {
+    if (!layout.order.includes(id) || layout.hidden.includes(id)) return layout;
+    return { ...layout, hidden: [...layout.hidden, id] };
+}
+/** Put a row from Add to Home at the end of On Home: a row taken off, a removed built-in genre, or a server genre. */
+export function putOn(layout, idOrGenre) {
+    let next = typeof idOrGenre === 'string' ? layout : addGenre(layout, idOrGenre);
+    const id = typeof idOrGenre === 'string' ? idOrGenre : selectedGenreId(next, idOrGenre);
+    if (!id) return layout;
+    if ((next.removedGenres || []).includes(id)) {
+        next = normalizeLayout({ ...next, removedGenres: next.removedGenres.filter(other => other !== id) });
+    }
+    const hidden = next.hidden.filter(other => other !== id);
+    const order = [...next.order.filter(other => other !== id), id];
+    return { ...next, hidden, order };
+}
+/** Move an On Home row to [index] among the rows On Home. Rows that are off keep their place behind them. */
+export function moveOnHome(layout, id, index) {
+    const shown = onHome(layout).filter(other => other !== id);
+    if (shown.length === onHome(layout).length) return layout;
+    shown.splice(Math.max(0, Math.min(index, shown.length)), 0, id);
+    return { ...layout, order: [...shown, ...layout.order.filter(other => !shown.includes(other))] };
+}
+/**
+ * Add to Home, filtered by [query]: rows taken off (most recent first), removed built-in genres, then the server's
+ * genres that are not rows yet. Each entry is { id, title, kind, genre? }.
+ */
+export function addToHomeRows(layout, catalog, query = '') {
+    const all = layoutSections(layout);
+    const titleOf = id => all.find(section => section.id === id)?.title ?? id;
+    const off = [...layout.hidden].reverse().map(id => ({ id, title: titleOf(id) }));
+    const removed = (layout.removedGenres || []).map(id => ({ id, title: titleOf(id) }));
+    const server = catalog.filter(genre => !selectedGenreId(layout, genre))
+        .map(genre => ({ id: genre.id, title: genre.title, genre }));
+    const q = query.trim().toLocaleLowerCase();
+    return [...off, ...removed, ...server].filter(row => row.title.toLocaleLowerCase().includes(q));
+}
+/** Continue Watching, Up Next and the Recently Added rows are built in; everything else is a genre. */
+export function isBuiltIn(id) {
+    return !id.startsWith('genre:');
+}
+/**
+ * A built-in genre row matches none of the server's genres, so Home would skip it. Unknown until the server's genres
+ * have loaded ([catalog] empty), when nothing is marked.
+ */
+export function isEmptyRow(id, catalog) {
+    if (!catalog.length || !id.startsWith('genre:') || id.startsWith('genre:server:')) return false;
+    const builtIn = getDiscoveryGenres().find(genre => genreId(genre) === id);
+    if (!builtIn) return false;
+    const names = new Set(catalog.map(genre => genre.title.toLocaleLowerCase()));
+    return !builtIn.filter.split('|').some(name => names.has(name.toLocaleLowerCase()));
+}

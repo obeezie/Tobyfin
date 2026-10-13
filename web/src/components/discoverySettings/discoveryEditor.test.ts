@@ -21,22 +21,15 @@ vi.mock('../dialogHelper/dialogHelper', () => ({
 }));
 import { openDiscoveryEditor } from './discoveryEditor';
 import { getDiscoveryLayout, saveDiscoveryLayout } from './discoverySettings';
+import { onHome } from './discoveryLayout';
 
-function click(selector: string) {
-    (document.querySelector(selector) as HTMLElement).click();
-}
+const western = { Id: '0123456789abcdef0123456789abcdef', Name: 'Western' };
+const click = (selector: string) => (document.querySelector(selector) as HTMLElement).click();
+const titles = () => [...document.querySelectorAll('.dRow .dTitle')].map(element => element.textContent);
+const tab = (name: 'on' | 'add') => click(`[data-tab="${name}"]`);
+const flush = () => new Promise(resolve => setTimeout(resolve, 0));
+
 describe('Customize Discovery editor', () => {
-    it('can remove, save and re-add a default even when server catalog is empty', () => {
-        openDiscoveryEditor();
-        click('button[aria-label="Remove Action"]');
-        expect(document.querySelector('button[aria-label="Remove Action"]')).toBeNull();
-        click('[data-action="save"]');
-        expect(getDiscoveryLayout().order).not.toContain('genre:Action');
-        openDiscoveryEditor();
-        click('.discoveryCatalog button');
-        click('[data-action="save"]');
-        expect(getDiscoveryLayout().order).toContain('genre:Action');
-    });
     beforeEach(() => {
         document.body.textContent = '';
         localStorage.clear();
@@ -49,76 +42,107 @@ describe('Customize Discovery editor', () => {
         });
         vi.useRealTimers();
     });
-    it('keeps the genre search visible when the keyboard shrinks the page, until the editor closes', () => {
+
+    it('opens on the On Home tab with the row count, labelling only built-in rows', () => {
         openDiscoveryEditor();
-        const search = document.querySelector('.discoverySearch') as HTMLInputElement;
-        search.scrollIntoView = vi.fn();
-        search.focus();
-        window.dispatchEvent(new Event('resize'));
-        expect(search.scrollIntoView).toHaveBeenCalledWith({ block: 'center' });
-        click('[data-action="cancel"]');
-        vi.mocked(search.scrollIntoView).mockClear();
-        window.dispatchEvent(new Event('resize'));
-        expect(search.scrollIntoView).not.toHaveBeenCalled();
+        const count = onHome(getDiscoveryLayout()).length;
+        expect(document.querySelector('[data-tab="on"]')?.textContent).toBe(`On Home · ${count}`);
+        expect(titles()).toHaveLength(count);
+        const continueWatching = document.querySelector('.dRow[data-id="resume"]');
+        const action = document.querySelector('.dRow[data-id="genre:Action"]');
+        expect(continueWatching?.querySelector('.dTag')?.textContent).toBe('Built-in');
+        expect(action?.querySelector('.dTag')).toBeNull();
     });
-    it('Save commits order visibility and size together; edits alone do not persist', () => {
+
+    it('taking a row off saves straight away, and Undo puts it back', () => {
         openDiscoveryEditor();
-        click('.discoveryOrderRow:first-child button:last-child');
-        click('.discoveryOrderRow:first-child input');
-        const size = document.querySelector('.discoverySize') as HTMLSelectElement;
-        size.value = 'large';
-        size.dispatchEvent(new Event('change'));
-        expect(getDiscoveryLayout().size).toBe('medium');
-        click('[data-action="save"]');
-        const saved = getDiscoveryLayout();
-        expect(saved.order.slice(0, 2)).toEqual(['nextup', 'resume']);
-        expect(saved.hidden).toEqual(['nextup']);
-        expect(saved.size).toBe('large');
-        expect(document.querySelector('.discoveryEditor')).toBeNull();
+        click('.dRow[data-id="nextup"] .dSwitch');
+        expect(onHome(getDiscoveryLayout())).not.toContain('nextup');
+        expect(document.querySelector('.dSnack')?.textContent).toContain('Up Next taken off Home');
+        click('.dSnack [data-action="undo"]');
+        expect(onHome(getDiscoveryLayout())).toContain('nextup');
+        expect(titles()).toContain('Up Next');
     });
-    it('Cancel discards Restore defaults and reopening reads the saved layout', () => {
-        saveDiscoveryLayout({ size: 'small', hidden: ['resume'] });
+
+    it('Add to Home lists rows taken off first, then server genres, and + adds to the end of On Home', async () => {
+        catalog.getGenres.mockResolvedValue({ Items: [western], TotalRecordCount: 1 });
         openDiscoveryEditor();
-        click('[data-action="defaults"]');
-        click('[data-action="cancel"]');
-        expect(getDiscoveryLayout().hidden).toEqual(['resume']);
-        openDiscoveryEditor();
-        expect((document.querySelector('.discoverySize') as HTMLSelectElement).value).toBe('small');
-        click('[data-action="defaults"]');
-        click('[data-action="save"]');
-        expect(getDiscoveryLayout().hidden).toEqual([]);
-        expect(getDiscoveryLayout().size).toBe('medium');
+        await flush();
+        click('.dRow[data-id="genre:Horror"] .dSwitch');
+        tab('add');
+        expect(titles()).toEqual(['Horror', 'Western']);
+        click('.dRow.off:last-child [data-action="add"]');
+        const shown = onHome(getDiscoveryLayout());
+        expect(shown[shown.length - 1]).toBe('genre:server:' + western.Id);
+        expect(document.querySelector('[data-tab="on"]')?.textContent).toBe(`On Home · ${shown.length}`);
     });
-    it('an account switch while editing cannot overwrite the new account', () => {
+
+    it('searches Add to Home and keeps typing in the search field', () => {
         openDiscoveryEditor();
-        click('.discoveryOrderRow:first-child input');
-        account.user = 'two';
-        click('[data-action="save"]');
-        expect(document.querySelector('.discoveryError')?.textContent).toContain('account changed');
-        expect(getDiscoveryLayout().hidden).toEqual([]);
+        click('.dRow[data-id="genre:Comedy"] .dSwitch');
+        click('.dRow[data-id="genre:Drama"] .dSwitch');
+        tab('add');
+        const search = document.querySelector('.dSearchInput') as HTMLInputElement;
+        search.value = 'dra';
+        search.dispatchEvent(new Event('input', { bubbles: true }));
+        expect(titles()).toEqual(['Drama']);
+        expect(document.activeElement).toBe(document.querySelector('.dSearchInput'));
     });
-    it('searches new server genres, adds them to the draft and saves their IDs', async () => {
+
+    it('a long press offers Move to top', () => {
         vi.useFakeTimers();
         openDiscoveryEditor();
-        await vi.advanceTimersByTimeAsync(0);
-        catalog.getGenres.mockResolvedValue({ Items: [
-            { Id: '0123456789abcdef0123456789abcdef', Name: 'Western' }
-        ], TotalRecordCount: 1 });
-        catalog.changed?.();
-        await vi.advanceTimersByTimeAsync(1000);
-        const search = document.querySelector('.discoverySearch') as HTMLInputElement;
-        search.value = 'west';
-        search.dispatchEvent(new Event('input'));
-        expect(document.querySelector('.discoveryCatalog')?.textContent).toContain('Western');
-        click('.discoveryCatalog button');
-        expect(getDiscoveryLayout().customGenres).toEqual([]);
-        expect(document.querySelector('.discoveryOrder')?.textContent).toContain('Western');
-        expect(document.querySelector('.discoveryBody [data-action="save"]')).toBeNull();
-        click('[data-action="defaults"]');
-        expect((document.querySelector('.discoveryCatalog button') as HTMLButtonElement).disabled).toBe(false);
-        click('.discoveryCatalog button');
-        click('[data-action="save"]');
-        expect(getDiscoveryLayout().customGenres[0].genreId).toBe('0123456789abcdef0123456789abcdef');
+        const row = document.querySelector('.dRow[data-id="genre:Horror"] .dBody') as HTMLElement;
+        row.dispatchEvent(new MouseEvent('pointerdown', { bubbles: true, clientY: 100 }));
+        vi.advanceTimersByTime(600);
+        row.dispatchEvent(new MouseEvent('pointerup', { bubbles: true }));
+        vi.advanceTimersByTime(500);
+        click('.dSheet [data-action="top"]');
+        expect(onHome(getDiscoveryLayout())[0]).toBe('genre:Horror');
+    });
+
+    it('changes poster size straight away', () => {
+        openDiscoveryEditor();
+        click('[data-size="large"]');
+        expect(getDiscoveryLayout().size).toBe('large');
+        expect(document.querySelector('[data-size="large"]')?.classList.contains('selected')).toBe(true);
+    });
+
+    it('Reset to default asks first', () => {
+        saveDiscoveryLayout({ size: 'small', hidden: ['resume'] });
+        openDiscoveryEditor();
+        click('[data-action="reset"]');
+        click('.dConfirm [data-action="dismiss"]');
+        expect(getDiscoveryLayout().size).toBe('small');
+        click('[data-action="reset"]');
+        click('[data-action="confirm-reset"]');
+        expect(getDiscoveryLayout().size).toBe('medium');
+        expect(getDiscoveryLayout().hidden).toEqual([]);
+    });
+
+    it('does not save into another account if the signed-in account changed', () => {
+        openDiscoveryEditor();
+        account.user = 'two';
+        click('.dRow[data-id="resume"] .dSwitch');
+        expect(document.querySelector('.dSnack')?.textContent).toContain('account changed');
+        expect(getDiscoveryLayout().hidden).toEqual([]);
+        account.user = 'one';
+        expect(getDiscoveryLayout().hidden).toEqual([]);
+    });
+
+    it('marks built-in genres the server has nothing for once its genres load', async () => {
+        catalog.getGenres.mockResolvedValue({ Items: [{ Id: 'aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa', Name: 'Action' }], TotalRecordCount: 1 });
+        openDiscoveryEditor();
+        expect(document.querySelectorAll('.dEmpty')).toHaveLength(0);
+        await flush();
+        expect(document.querySelector('.dRow[data-id="genre:Action"] .dEmpty')).toBeNull();
+        expect(document.querySelector('.dRow[data-id="genre:Horror"] .dEmpty')?.textContent).toBe('Nothing to show yet');
+    });
+
+    it('stops refreshing genres once closed', () => {
+        openDiscoveryEditor();
+        click('[data-action="close"]');
         expect(catalog.changed).toBeUndefined();
+        expect(document.querySelector('.discoveryEditor')).toBeNull();
     });
 });

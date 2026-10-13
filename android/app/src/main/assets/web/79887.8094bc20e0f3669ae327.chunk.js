@@ -1,0 +1,1 @@
+"use strict";(self.webpackChunk=self.webpackChunk||[]).push([[79887],{79887:function(e,u){Object.defineProperty(u,"__esModule",{value:!0}),u.default=void 0;var t={lastWeek:"eeee 'lalu pukul' p",yesterday:"'Kemarin pukul' p",today:"'Hari ini pukul' p",tomorrow:"'Besok pukul' p",nextWeek:"eeee 'pukul' p",other:"P"};u.default=function(e,u,l,p){return t[e]},e.exports=u.default}}]);

@@ -1,0 +1,1 @@
+"use strict";(self.webpackChunk=self.webpackChunk||[]).push([[77090],{54709:function(e,t){Object.defineProperty(t,"__esModule",{value:!0}),t.default=void 0;var n={lastWeek:"'të' eeee 'e shkuar në' p",yesterday:"'dje në' p",today:"'sot në' p",tomorrow:"'nesër në' p",nextWeek:"eeee 'at' p",other:"P"};t.default=function(e,t,r,u){return n[e]},e.exports=t.default}}]);

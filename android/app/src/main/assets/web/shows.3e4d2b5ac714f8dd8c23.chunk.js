@@ -1,0 +1,1 @@
+"use strict";(self.webpackChunk=self.webpackChunk||[]).push([[49911],{23349:function(e,s,u){u.r(s);var n=u(92806),t=u(69884),c=(u(97526),u(29020));s.default=function(){return(0,n.jsx)(c.A,{type:t.X.Tvshows})}}}]);

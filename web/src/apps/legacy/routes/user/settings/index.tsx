@@ -8,6 +8,7 @@ import Loading from 'components/loading/LoadingComponent';
 import Page from 'components/Page';
 import { AppFeature } from 'constants/appFeature';
 import LinkButton from 'elements/emby-button/LinkButton';
+import { openDiscoveryEditor } from 'components/discoverySettings/discoveryEditor';
 import { useApi } from 'hooks/useApi';
 import { useQuickConnectEnabled } from 'hooks/useQuickConnect';
 import { useUsers } from 'hooks/useUsers';
@@ -132,6 +133,36 @@ const UserSettingsPage: FC = () => {
                                 </div>
                             </div>
                         </LinkButton>
+
+                        {/* Tobyfin: Customize Discovery has its own entry instead of a button inside Home. */}
+                        <button
+                            type='button'
+                            className='lnkCustomizeDiscovery listItem-border emby-button'
+                            onClick={openDiscoveryEditor}
+                            style={{
+                                display: 'block',
+                                width: '100%',
+                                margin: 0,
+                                padding: 0,
+                                background: 'transparent',
+                                border: 0,
+                                textAlign: 'start',
+                                color: 'inherit',
+                                font: 'inherit'
+                            }}
+                        >
+                            <div className='listItem'>
+                                <span className='material-icons listItemIcon listItemIcon-transparent dashboard_customize' aria-hidden='true' />
+                                <div className='listItemBody'>
+                                    <div className='listItemBodyText'>
+                                        Customize Discovery
+                                    </div>
+                                    <div className='listItemBodyText secondary'>
+                                        Choose and order your Home rows
+                                    </div>
+                                </div>
+                            </div>
+                        </button>
 
                         <LinkButton
                             href={`#/mypreferenceshome?userId=${userId}`}

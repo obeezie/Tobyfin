@@ -4,7 +4,9 @@ import android.os.Bundle
 import android.view.KeyEvent
 import android.view.View
 import androidx.leanback.app.RowsSupportFragment
+import androidx.leanback.widget.HorizontalGridView
 import androidx.leanback.widget.ListRow
+import androidx.leanback.widget.ListRowPresenter
 import androidx.leanback.widget.OnItemViewClickedListener
 import androidx.leanback.widget.OnItemViewSelectedListener
 import androidx.leanback.widget.Presenter
@@ -415,6 +417,12 @@ override fun onKey(v: View?, keyCode: Int, event: KeyEvent?): Boolean {
 				backgroundService.clearBackgrounds()
 			} else {
 				currentItem = item
+				// Arriving on a row: line its scroll up with its selected card. A row whose saved cards were
+				// swapped for fresh ones while off-screen can keep its old scroll, leaving the selected card
+				// (shown in Spotlight's backdrop) off-screen until the row is scrolled.
+				if (row !== currentRow) (rowViewHolder as? ListRowPresenter.ViewHolder)?.gridView?.let { grid ->
+					grid.post { grid.realignToSelection() }
+				}
 				currentRow = row as ListRow
 				_spotlightSelection.value = if (_spotlightEnabled.value) item.baseItem?.let { HomeSpotlightSelection(row.headerItem?.name, it) } else null
 
@@ -430,4 +438,15 @@ override fun onKey(v: View?, keyCode: Int, event: KeyEvent?): Boolean {
 			}
 		}
 	}
+}
+
+/**
+ * Scrolls the row so its selected card is where leanback would put it. Setting the same selection is ignored, so
+ * change the scroll extra and back, which re-runs the alignment without changing the selection.
+ */
+private fun HorizontalGridView.realignToSelection() {
+	val position = selectedPosition
+	if (position < 0) return
+	setSelectedPosition(position, 1)
+	setSelectedPosition(position, 0)
 }

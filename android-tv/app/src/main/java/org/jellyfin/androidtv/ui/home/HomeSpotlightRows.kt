@@ -1,5 +1,7 @@
 package org.jellyfin.androidtv.ui.home
 
+import android.animation.ObjectAnimator
+import android.animation.ValueAnimator
 import android.view.View
 import androidx.leanback.widget.BaseGridView
 import androidx.leanback.widget.VerticalGridView
@@ -34,6 +36,11 @@ internal class HomeSpotlightRows(private val grid: VerticalGridView) {
 
 	private val scrollListener = object : RecyclerView.OnScrollListener() {
 		override fun onScrolled(recyclerView: RecyclerView, dx: Int, dy: Int) = fade()
+
+		// A last check once the grid settles, so no row is left visible after a scroll.
+		override fun onScrollStateChanged(recyclerView: RecyclerView, newState: Int) {
+			if (newState == RecyclerView.SCROLL_STATE_IDLE) fadeNowAndAfterAnimations()
+		}
 	}
 	private val layoutListener = View.OnLayoutChangeListener { _, _, _, _, _, _, _, _, _ -> fadeNowAndAfterAnimations() }
 	private val attachListener = object : RecyclerView.OnChildAttachStateChangeListener {
@@ -41,10 +48,13 @@ internal class HomeSpotlightRows(private val grid: VerticalGridView) {
 		override fun onChildViewDetachedFromWindow(view: View) = Unit
 	}
 
+	private val settleCheck = Runnable { fade() }
+
 	/** Fade now, and again once the grid's own item animations (rows added or refreshed) have finished. */
 	private fun fadeNowAndAfterAnimations() {
 		fade()
 		grid.post { grid.itemAnimator?.isRunning { fade() } ?: fade() }
+		grid.postDelayed(settleCheck, FADE_MS + 120)
 	}
 
 	fun attach() {
@@ -67,10 +77,11 @@ internal class HomeSpotlightRows(private val grid: VerticalGridView) {
 		grid.removeOnScrollListener(scrollListener)
 		grid.removeOnLayoutChangeListener(layoutListener)
 		grid.removeOnChildAttachStateChangeListener(attachListener)
+		grid.removeCallbacks(settleCheck)
 		for (i in 0 until grid.childCount) grid.getChildAt(i).apply {
-			animate().cancel()
+			(getTag(R.id.spotlight_alpha_animator) as? ValueAnimator)?.cancel()
+			setTag(R.id.spotlight_alpha_animator, null)
 			setTag(R.id.spotlight_alpha_target, null)
-			setTag(R.id.spotlight_alpha_animating, null)
 			alpha = 1f
 		}
 		grid.windowAlignment = savedWindowAlignment
@@ -93,16 +104,18 @@ internal class HomeSpotlightRows(private val grid: VerticalGridView) {
 			val child = grid.getChildAt(i)
 			val position = grid.getChildAdapterPosition(child)
 			val target = if (position != RecyclerView.NO_POSITION && position < selected) 0f else 1f
-			// Skip only a row already fading to the target. The grid's own add and change animations set a
-			// row's alpha back to 1 when they finish, so the row's actual alpha is checked, not just the target.
-			val fading = child.getTag(R.id.spotlight_alpha_target) == target && child.getTag(R.id.spotlight_alpha_animating) == true
-			if (fading || (child.alpha == target && child.getTag(R.id.spotlight_alpha_target) == target)) continue
+			// Trust only what is really happening: a fade that is still running towards the target, or a row
+			// already at it. The grid cancels animations and resets alpha when it recycles or animates a row,
+			// so a remembered "fading" flag can go stale and leave a row above fully visible.
+			val running = child.getTag(R.id.spotlight_alpha_animator) as? ValueAnimator
+			if (running?.isRunning == true) {
+				if (child.getTag(R.id.spotlight_alpha_target) == target) continue
+				running.cancel()
+			} else if (child.alpha == target) continue
+			val fade = ObjectAnimator.ofFloat(child, View.ALPHA, child.alpha, target).setDuration(FADE_MS)
 			child.setTag(R.id.spotlight_alpha_target, target)
-			child.setTag(R.id.spotlight_alpha_animating, true)
-			child.animate().cancel()
-			child.animate().alpha(target).setDuration(FADE_MS)
-				.withEndAction { child.setTag(R.id.spotlight_alpha_animating, false) }
-				.start()
+			child.setTag(R.id.spotlight_alpha_animator, fade)
+			fade.start()
 		}
 	}
 }

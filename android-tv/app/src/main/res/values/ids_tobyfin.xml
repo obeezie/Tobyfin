@@ -2,5 +2,5 @@
 <resources>
     <!-- Spotlight: the alpha a Home row is fading towards (HomeSpotlightRows) -->
     <item name="spotlight_alpha_target" type="id" />
-    <item name="spotlight_alpha_animating" type="id" />
+    <item name="spotlight_alpha_animator" type="id" />
 </resources>

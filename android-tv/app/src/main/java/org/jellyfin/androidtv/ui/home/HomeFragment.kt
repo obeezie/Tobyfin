@@ -8,6 +8,7 @@ import androidx.compose.foundation.focusGroup
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
@@ -61,6 +62,8 @@ class HomeFragment : Fragment() {
 			// issue we add custom behavior that only allows focus exit when the current selected row is the first one. Additionally when
 			// we do switch the focus, we reset the leanback state so it won't cause weird behavior when focus is regained
 			var rowsSupportFragment by remember { mutableStateOf<HomeRowsFragment?>(null) }
+			val spotlight = rowsSupportFragment?.spotlightEnabled?.collectAsState()?.value == true
+			if (spotlight) HomeSpotlightScrim()
 			AndroidFragment<HomeRowsFragment>(
 				modifier = Modifier
 					.focusGroup()
@@ -82,6 +85,10 @@ class HomeFragment : Fragment() {
 					fragment.setOverlayHeaderHeight(headerHeight)
 				}
 			)
+			if (spotlight) rowsSupportFragment?.let { fragment ->
+				val selection by fragment.spotlightSelection.collectAsState()
+				HomeSpotlightHero(selection, topInset = with(density) { headerHeight.toDp() })
+			}
 			Box(Modifier.onSizeChanged { headerHeight = it.height }) {
 				MainToolbar(MainToolbarActiveButton.Home)
 			}

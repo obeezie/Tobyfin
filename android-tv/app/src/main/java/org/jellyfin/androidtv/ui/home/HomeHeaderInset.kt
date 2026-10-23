@@ -10,6 +10,13 @@ internal class HomeHeaderInset(private val grid: VerticalGridView) {
 	private val alignmentFraction = grid.windowAlignmentOffsetPercent.takeIf { it >= 0f }?.div(100f) ?: 0f
 	private var appliedHeight: Int? = null
 
+	/** Applies the last header height again after something else changed the grid's alignment. */
+	fun reapply() {
+		val height = appliedHeight ?: return
+		appliedHeight = null
+		apply(height)
+	}
+
 	fun apply(headerHeight: Int) {
 		val height = headerHeight.coerceAtLeast(0)
 		if (appliedHeight == height) return

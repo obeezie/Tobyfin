@@ -248,6 +248,11 @@ fun SettingsDiscoveryScreen() {
 				Text("Customize Discovery", fontFamily = WhosWatchingStyle.Jakarta, fontWeight = FontWeight.Bold, fontSize = 28.sp, color = Color.White)
 				Spacer(Modifier.weight(1f))
 				status?.let { Text(it, fontSize = 15.sp, color = Muted, modifier = Modifier.padding(end = 16.dp)) }
+				// Moved here from Settings > Customization > Home, which Discovery replaces.
+				Label("Up Next shows")
+				Spacer(Modifier.width(10.dp))
+				Pill(nextUpCutoff?.let { "Last $it" } ?: "Any time", enabled = !busy) { router.push(Routes.HOME_NEXT_UP_CUTOFF) }
+				Spacer(Modifier.width(10.dp))
 				Pill(if (history.isEmpty()) "↶ Undo" else "↶ Undo", enabled = history.isNotEmpty() && !busy, onClick = ::undo)
 			}
 
@@ -258,10 +263,14 @@ fun SettingsDiscoveryScreen() {
 						if (layout.size != value) change(layout.copy(size = value), "Poster size: $title")
 					}
 				}
-				// Moved here from Settings > Customization > Home, which Discovery replaces.
-				Spacer(Modifier.weight(1f))
-				Label("Up Next shows")
-				Pill(nextUpCutoff?.let { "Last $it" } ?: "Any time", enabled = !busy) { router.push(Routes.HOME_NEXT_UP_CUTOFF) }
+				// Spotlight keeps the selected row on the bottom edge, with the highlighted title's details above it.
+				Spacer(Modifier.width(18.dp))
+				Label("Layout")
+				listOf("standard" to "Standard", "spotlight" to "Spotlight").forEach { (value, title) ->
+					ChoiceOption(title, selected = layout.rowStyle == value, enabled = !busy) {
+						if (layout.rowStyle != value) change(layout.copy(rowStyle = value), "Layout: $title")
+					}
+				}
 			}
 
 			Row(Modifier.weight(1f), horizontalArrangement = Arrangement.spacedBy(28.dp)) {
@@ -414,6 +423,22 @@ private fun SizeOption(title: String, value: String, selected: Boolean, enabled:
 				Box(Modifier.size(width.dp, height.dp).clip(RoundedCornerShape(2.dp)).background(Brush.linearGradient(listOf(Color(0xFF3B4A8A), Color(0xFF222B55)))))
 			}
 		}
+		Text(title, fontSize = 15.sp, fontWeight = FontWeight.SemiBold, color = if (focused) WhosWatchingStyle.Night else Color.White)
+	}
+}
+
+@Composable
+private fun ChoiceOption(title: String, selected: Boolean, enabled: Boolean, onClick: () -> Unit) {
+	val (source, focused) = focusState()
+	Box(
+		contentAlignment = Alignment.Center,
+		modifier = Modifier
+			.clip(RoundedCornerShape(10.dp))
+			.background(if (focused) Color.White else WhosWatchingStyle.PanelRow)
+			.border(2.dp, if (selected && !focused) Cyan else Color.Transparent, RoundedCornerShape(10.dp))
+			.clickable(interactionSource = source, indication = null, enabled = enabled, onClick = onClick)
+			.padding(horizontal = 14.dp, vertical = 7.dp),
+	) {
 		Text(title, fontSize = 15.sp, fontWeight = FontWeight.SemiBold, color = if (focused) WhosWatchingStyle.Night else Color.White)
 	}
 }

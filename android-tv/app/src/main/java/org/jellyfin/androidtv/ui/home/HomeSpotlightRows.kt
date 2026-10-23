@@ -44,7 +44,17 @@ internal class HomeSpotlightRows(private val grid: VerticalGridView) {
 	}
 	private val layoutListener = View.OnLayoutChangeListener { _, _, _, _, _, _, _, _, _ -> fadeNowAndAfterAnimations() }
 	private val attachListener = object : RecyclerView.OnChildAttachStateChangeListener {
-		override fun onChildViewAttachedToWindow(view: View) = fadeNowAndAfterAnimations()
+		override fun onChildViewAttachedToWindow(view: View) {
+			// A row appearing above the selection is hidden before it is ever drawn.
+			val position = grid.getChildAdapterPosition(view)
+			if (position != RecyclerView.NO_POSITION && position < grid.selectedPosition) {
+				(view.getTag(R.id.spotlight_alpha_animator) as? ValueAnimator)?.cancel()
+				view.setTag(R.id.spotlight_alpha_animator, null)
+				view.setTag(R.id.spotlight_alpha_target, 0f)
+				view.alpha = 0f
+			}
+			fadeNowAndAfterAnimations()
+		}
 		override fun onChildViewDetachedFromWindow(view: View) = Unit
 	}
 
@@ -98,8 +108,18 @@ internal class HomeSpotlightRows(private val grid: VerticalGridView) {
 	 * rows are lined up by the bottom of their cards, not the titles under them, so position is a steadier
 	 * test than distance from the keyline. A row fades out (or back in) briefly instead of popping.
 	 */
+	/** The row selected last time [fade] ran, to tell the row just left (moving down) from any other. */
+	private var lastSelected = RecyclerView.NO_POSITION
+
+	/** The row the selection just moved down from; only this one fades out, everything else changes at once. */
+	private var leaving = RecyclerView.NO_POSITION
+
 	private fun fade() {
 		val selected = grid.selectedPosition
+		if (selected != lastSelected) {
+			leaving = if (lastSelected != RecyclerView.NO_POSITION && lastSelected < selected) lastSelected else RecyclerView.NO_POSITION
+			lastSelected = selected
+		}
 		for (i in 0 until grid.childCount) {
 			val child = grid.getChildAt(i)
 			val position = grid.getChildAdapterPosition(child)
@@ -112,8 +132,15 @@ internal class HomeSpotlightRows(private val grid: VerticalGridView) {
 				if (child.getTag(R.id.spotlight_alpha_target) == target) continue
 				running.cancel()
 			} else if (child.alpha == target) continue
-			val fade = ObjectAnimator.ofFloat(child, View.ALPHA, child.alpha, target).setDuration(FADE_MS)
 			child.setTag(R.id.spotlight_alpha_target, target)
+			// Only the row being left fades out as it slides up, and the newly selected row fades in. A row
+			// coming in from the top while moving up is hidden at once, or it would flash before fading.
+			if (target == 0f && position != leaving) {
+				child.setTag(R.id.spotlight_alpha_animator, null)
+				child.alpha = 0f
+				continue
+			}
+			val fade = ObjectAnimator.ofFloat(child, View.ALPHA, child.alpha, target).setDuration(FADE_MS)
 			child.setTag(R.id.spotlight_alpha_animator, fade)
 			fade.start()
 		}

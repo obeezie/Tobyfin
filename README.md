@@ -23,6 +23,8 @@ The phone app bundles a built copy of `web/` in `android/app/src/main/assets/web
 - "Who's watching?" profile picker on Android TV
 - Spotlight layout on Android TV: a per-profile Home layout that anchors the selected row to the bottom edge and shows the highlighted title above it
 
+Release notes for every Phone and Shield version, with what was tested and what is still pending, are in [TOBYFIN.md](TOBYFIN.md).
+
 ## Building
 
 - **Web:** `cd web && npm ci && npm run build:production`

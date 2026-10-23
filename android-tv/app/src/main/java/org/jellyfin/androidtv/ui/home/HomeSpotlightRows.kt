@@ -35,7 +35,17 @@ internal class HomeSpotlightRows(private val grid: VerticalGridView) {
 	private val scrollListener = object : RecyclerView.OnScrollListener() {
 		override fun onScrolled(recyclerView: RecyclerView, dx: Int, dy: Int) = fade()
 	}
-	private val layoutListener = View.OnLayoutChangeListener { _, _, _, _, _, _, _, _, _ -> fade() }
+	private val layoutListener = View.OnLayoutChangeListener { _, _, _, _, _, _, _, _, _ -> fadeNowAndAfterAnimations() }
+	private val attachListener = object : RecyclerView.OnChildAttachStateChangeListener {
+		override fun onChildViewAttachedToWindow(view: View) = fadeNowAndAfterAnimations()
+		override fun onChildViewDetachedFromWindow(view: View) = Unit
+	}
+
+	/** Fade now, and again once the grid's own item animations (rows added or refreshed) have finished. */
+	private fun fadeNowAndAfterAnimations() {
+		fade()
+		grid.post { grid.itemAnimator?.isRunning { fade() } ?: fade() }
+	}
 
 	fun attach() {
 		// A negative window offset is measured up from the bottom edge, so the keyline follows the grid height.
@@ -49,15 +59,18 @@ internal class HomeSpotlightRows(private val grid: VerticalGridView) {
 		grid.setPadding(grid.paddingLeft, grid.paddingTop, grid.paddingRight, 0)
 		grid.addOnScrollListener(scrollListener)
 		grid.addOnLayoutChangeListener(layoutListener)
+		grid.addOnChildAttachStateChangeListener(attachListener)
 		fade()
 	}
 
 	fun detach() {
 		grid.removeOnScrollListener(scrollListener)
 		grid.removeOnLayoutChangeListener(layoutListener)
+		grid.removeOnChildAttachStateChangeListener(attachListener)
 		for (i in 0 until grid.childCount) grid.getChildAt(i).apply {
 			animate().cancel()
 			setTag(R.id.spotlight_alpha_target, null)
+			setTag(R.id.spotlight_alpha_animating, null)
 			alpha = 1f
 		}
 		grid.windowAlignment = savedWindowAlignment
@@ -80,10 +93,16 @@ internal class HomeSpotlightRows(private val grid: VerticalGridView) {
 			val child = grid.getChildAt(i)
 			val position = grid.getChildAdapterPosition(child)
 			val target = if (position != RecyclerView.NO_POSITION && position < selected) 0f else 1f
-			if (child.getTag(R.id.spotlight_alpha_target) == target) continue
+			// Skip only a row already fading to the target. The grid's own add and change animations set a
+			// row's alpha back to 1 when they finish, so the row's actual alpha is checked, not just the target.
+			val fading = child.getTag(R.id.spotlight_alpha_target) == target && child.getTag(R.id.spotlight_alpha_animating) == true
+			if (fading || (child.alpha == target && child.getTag(R.id.spotlight_alpha_target) == target)) continue
 			child.setTag(R.id.spotlight_alpha_target, target)
+			child.setTag(R.id.spotlight_alpha_animating, true)
 			child.animate().cancel()
-			child.animate().alpha(target).setDuration(FADE_MS).start()
+			child.animate().alpha(target).setDuration(FADE_MS)
+				.withEndAction { child.setTag(R.id.spotlight_alpha_animating, false) }
+				.start()
 		}
 	}
 }

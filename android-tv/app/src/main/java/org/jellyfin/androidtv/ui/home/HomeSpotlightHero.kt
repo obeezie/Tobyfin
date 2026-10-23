@@ -9,15 +9,18 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.Dp
+import androidx.compose.ui.unit.coerceAtLeast
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import org.jellyfin.androidtv.ui.base.Text
@@ -59,18 +62,24 @@ fun HomeSpotlightHero(selection: HomeSpotlightSelection?, topInset: Dp) {
 		val title = (if (isEpisode) item.seriesName else null) ?: item.name.orEmpty()
 		Column(
 			modifier = Modifier
-				.padding(start = 48.dp, top = topInset + 12.dp, end = 48.dp)
+				// Starts just under the toolbar so a title, an episode name, the info row and two lines of overview
+				// all fit above the selected row's header.
+				.padding(start = 48.dp, top = (topInset - 16.dp).coerceAtLeast(0.dp), end = 48.dp)
 				.fillMaxWidth(0.55f),
 			verticalArrangement = Arrangement.spacedBy(8.dp),
 		) {
 			current.rowTitle?.takeIf { it.isNotBlank() }?.let {
 				Text(it.uppercase(), color = Color(0xFF00B7EF), fontSize = 12.sp, fontWeight = FontWeight.Medium, letterSpacing = 2.sp)
 			}
-			Text(title, color = Color.White, fontSize = 38.sp, fontWeight = FontWeight.Light, lineHeight = 42.sp, maxLines = 2, overflow = TextOverflow.Ellipsis)
+			Text(title, color = Color.White, fontSize = 38.sp, fontWeight = FontWeight.Light, lineHeight = 42.sp, maxLines = 1, overflow = TextOverflow.Ellipsis)
 			if (isEpisode) item.name?.let { Text(it, color = Color.White, fontSize = 18.sp, fontWeight = FontWeight.Normal, maxLines = 1, overflow = TextOverflow.Ellipsis) }
-			BaseItemInfoRow(item = item, mediaSource = null, includeRuntime = true)
+			// The info row's badges fill the height they are given; without a bound it took the rest of the
+			// screen, drawing itself over the cards and pushing the overview off-screen.
+			Box(Modifier.height(28.dp), contentAlignment = Alignment.CenterStart) {
+				BaseItemInfoRow(item = item, mediaSource = null, includeRuntime = true)
+			}
 			item.overview?.takeIf { it.isNotBlank() }?.let {
-				Text(it, color = Color(0xFFE3E7EC), fontSize = 15.sp, fontWeight = FontWeight.Light, lineHeight = 21.sp, maxLines = 3, overflow = TextOverflow.Ellipsis)
+				Text(it, color = Color(0xFFE3E7EC), fontSize = 15.sp, fontWeight = FontWeight.Light, lineHeight = 21.sp, maxLines = 2, overflow = TextOverflow.Ellipsis)
 			}
 		}
 	}

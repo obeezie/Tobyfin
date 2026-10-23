@@ -4,6 +4,7 @@ import android.view.View
 import androidx.leanback.widget.BaseGridView
 import androidx.leanback.widget.VerticalGridView
 import androidx.recyclerview.widget.RecyclerView
+import org.jellyfin.androidtv.R
 import kotlin.math.roundToInt
 
 /**
@@ -16,6 +17,9 @@ internal class HomeSpotlightRows(private val grid: VerticalGridView) {
 	companion object {
 		/** Space kept below the selected row's cards: enough for the next row's header text, not its cards. */
 		const val PEEK_DP = 52
+
+		/** How long a row takes to fade out above the selected row, or back in. */
+		const val FADE_MS = 160L
 	}
 
 	private val peek = (PEEK_DP * grid.resources.displayMetrics.density).roundToInt()
@@ -51,7 +55,11 @@ internal class HomeSpotlightRows(private val grid: VerticalGridView) {
 	fun detach() {
 		grid.removeOnScrollListener(scrollListener)
 		grid.removeOnLayoutChangeListener(layoutListener)
-		for (i in 0 until grid.childCount) grid.getChildAt(i).alpha = 1f
+		for (i in 0 until grid.childCount) grid.getChildAt(i).apply {
+			animate().cancel()
+			setTag(R.id.spotlight_alpha_target, null)
+			alpha = 1f
+		}
 		grid.windowAlignment = savedWindowAlignment
 		grid.windowAlignmentOffsetPercent = savedWindowAlignmentOffsetPercent
 		grid.windowAlignmentOffset = savedWindowAlignmentOffset
@@ -62,18 +70,20 @@ internal class HomeSpotlightRows(private val grid: VerticalGridView) {
 	}
 
 	/**
-	 * Rows above the selected one are hidden; the alpha ramps down over the height of the selected row
-	 * so the row that was just left fades out while the grid scrolls instead of popping.
+	 * Rows above the selected one are hidden, so nothing shows behind the backdrop and the title text. The
+	 * rows are lined up by the bottom of their cards, not the titles under them, so position is a steadier
+	 * test than distance from the keyline. A row fades out (or back in) briefly instead of popping.
 	 */
 	private fun fade() {
-		val keyline = grid.height - peek
-		if (keyline <= 0) return
-		val selected = grid.findViewHolderForAdapterPosition(grid.selectedPosition)?.itemView
+		val selected = grid.selectedPosition
 		for (i in 0 until grid.childCount) {
 			val child = grid.getChildAt(i)
-			val above = keyline - child.bottom
-			val ramp = (selected?.height ?: child.height).coerceAtLeast(1)
-			child.alpha = if (child === selected || above <= 0) 1f else (1f - above.toFloat() / ramp).coerceIn(0f, 1f)
+			val position = grid.getChildAdapterPosition(child)
+			val target = if (position != RecyclerView.NO_POSITION && position < selected) 0f else 1f
+			if (child.getTag(R.id.spotlight_alpha_target) == target) continue
+			child.setTag(R.id.spotlight_alpha_target, target)
+			child.animate().cancel()
+			child.animate().alpha(target).setDuration(FADE_MS).start()
 		}
 	}
 }

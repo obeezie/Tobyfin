@@ -1,11 +1,24 @@
 package org.jellyfin.androidtv.ui.home
 
+import android.content.Context
+import androidx.compose.animation.core.tween
+import androidx.compose.foundation.Image
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.setValue
+import androidx.compose.ui.graphics.ImageBitmap
+import androidx.compose.ui.graphics.asImageBitmap
+import androidx.compose.ui.platform.LocalContext
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.Crossfade
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.ui.layout.ContentScale
 import coil3.ImageLoader
-import coil3.compose.AsyncImage
+import coil3.request.ImageRequest
+import coil3.toBitmap
 import org.jellyfin.androidtv.util.apiclient.getUrl
 import org.jellyfin.androidtv.util.apiclient.itemBackdropImages
 import org.jellyfin.androidtv.util.apiclient.parentBackdropImages
@@ -43,29 +56,48 @@ data class HomeSpotlightSelection(val rowTitle: String?, val item: BaseItemDto)
 
 private val SpotlightBackground = Color(0xFF080C1D)
 
+/** Backdrops are shown across about two thirds of a 1080p screen, so load them at that size, not full HD. */
+private const val BACKDROP_WIDTH = 1280
+private const val BACKDROP_HEIGHT = 720
+
+/** The backdrop Spotlight shows for [item]: its own, or its show's for an episode. */
+fun spotlightBackdropUrl(item: BaseItemDto, api: ApiClient): String? =
+	(item.itemBackdropImages + item.parentBackdropImages).firstOrNull()?.getUrl(api, maxWidth = BACKDROP_WIDTH)
+
+/** One request shape for showing and preloading, so a preloaded backdrop is a memory-cache hit. */
+fun spotlightBackdropRequest(context: Context, url: String) = ImageRequest.Builder(context)
+	.data(url)
+	.size(BACKDROP_WIDTH, BACKDROP_HEIGHT)
+	.build()
+
 /**
  * The highlighted item's backdrop for Spotlight, drawn behind the rows: sharp and unblurred in the top-right of the
- * screen, fading into the dark area on the left where the title and overview sit, and into the rows below. Keeps the
- * last backdrop while nothing is highlighted, and crossfades between items.
+ * screen, fading into the dark area on the left where the title and overview sit, and into the rows below. The
+ * current backdrop stays up until the next one has loaded, then crossfades, so moving never flashes empty.
  */
 @Composable
 fun HomeSpotlightBackdrop(selection: HomeSpotlightSelection?) {
 	val api = koinInject<ApiClient>()
 	val imageLoader = koinInject<ImageLoader>()
-	val last = remember { arrayOfNulls<String>(1) }
-	val url = selection?.item?.let { item ->
-		(item.itemBackdropImages + item.parentBackdropImages).firstOrNull()?.getUrl(api, maxWidth = 1920)
+	val context = LocalContext.current
+	var shown by remember { mutableStateOf<ImageBitmap?>(null) }
+	val target = selection?.item?.let { spotlightBackdropUrl(it, api) }
+
+	LaunchedEffect(target) {
+		if (target == null) return@LaunchedEffect
+		val image = withContext(Dispatchers.IO) {
+			imageLoader.execute(spotlightBackdropRequest(context, target)).image?.toBitmap()?.asImageBitmap()
+		}
+		if (image != null) shown = image
 	}
-	if (selection != null) last[0] = url
 
 	Box(Modifier.fillMaxSize().background(SpotlightBackground)) {
-		Crossfade(targetState = last[0], label = "spotlight backdrop") { shown ->
+		Crossfade(targetState = shown, animationSpec = tween(250), label = "spotlight backdrop") { bitmap ->
 			Box(Modifier.fillMaxSize()) {
-				if (shown != null) {
+				if (bitmap != null) {
 					val frame = Modifier.align(Alignment.TopEnd).fillMaxWidth(0.68f).fillMaxHeight(0.8f)
-					AsyncImage(
-						model = shown,
-						imageLoader = imageLoader,
+					Image(
+						bitmap = bitmap,
 						contentDescription = null,
 						contentScale = ContentScale.Crop,
 						alignment = Alignment.TopCenter,

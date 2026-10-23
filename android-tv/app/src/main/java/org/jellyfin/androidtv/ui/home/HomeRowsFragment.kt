@@ -26,6 +26,7 @@ import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import kotlinx.coroutines.withTimeout
+import coil3.ImageLoader
 import org.jellyfin.androidtv.auth.repository.UserRepository
 import org.jellyfin.androidtv.constant.CustomMessage
 import org.jellyfin.androidtv.constant.LiveTvOption
@@ -76,6 +77,7 @@ class HomeRowsFragment : RowsSupportFragment(), AudioEventListener, View.OnKeyLi
     private var rowVisibility: HomeRowVisibility? = null
     private val rowPositions = HomeRowPositions()
 	private val backgroundService by inject<BackgroundService>()
+	private val imageLoader by inject<ImageLoader>()
 	private val playbackManager by inject<PlaybackManager>()
 	private val mediaManager by inject<MediaManager>()
 	private val notificationsRepository by inject<NotificationsRepository>()
@@ -125,6 +127,17 @@ class HomeRowsFragment : RowsSupportFragment(), AudioEventListener, View.OnKeyLi
 		spotlightRows = null
 		headerInset = null
 		super.onDestroyView()
+	}
+
+	/** Loads the backdrops of the cards either side of [index], so moving along the row shows them at once. */
+	private fun preloadSpotlightBackdrops(adapter: ItemRowAdapter, index: Int) {
+		if (index < 0) return
+		val context = context ?: return
+		for (neighbour in listOf(index + 1, index - 1, index + 2)) {
+			val item = (adapter.get(neighbour) as? BaseRowItem)?.baseItem ?: continue
+			val url = spotlightBackdropUrl(item, api) ?: continue
+			imageLoader.enqueue(spotlightBackdropRequest(context, url))
+		}
 	}
 
 	/** Switches the grid between the standard leanback alignment and the bottom-anchored Spotlight style. */
@@ -410,8 +423,10 @@ override fun onKey(v: View?, keyCode: Int, event: KeyEvent?): Boolean {
 				rowPositions.record(row, itemRowAdapter?.indexOf(item) ?: -1)
 
 				// Spotlight draws its own sharp backdrop; the app-wide blurred one would only sit behind it.
-				if (_spotlightEnabled.value) backgroundService.clearBackgrounds()
-				else backgroundService.setBackground(item.baseItem)
+				if (_spotlightEnabled.value) {
+					backgroundService.clearBackgrounds()
+					itemRowAdapter?.let { preloadSpotlightBackdrops(it, it.indexOf(item)) }
+				} else backgroundService.setBackground(item.baseItem)
 			}
 		}
 	}

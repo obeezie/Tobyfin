@@ -1,0 +1,5 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Spotlight: the alpha a Home row is fading towards (HomeSpotlightRows) -->
+    <item name="spotlight_alpha_target" type="id" />
+</resources>

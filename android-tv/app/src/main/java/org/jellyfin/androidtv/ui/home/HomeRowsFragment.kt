@@ -16,6 +16,8 @@ import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.launchIn
@@ -101,19 +103,43 @@ class HomeRowsFragment : RowsSupportFragment(), AudioEventListener, View.OnKeyLi
 	private var overlayHeaderHeight = 0
 	private var headerInset: HomeHeaderInset? = null
 
+	// Spotlight row style (per profile, see DiscoveryLayout.rowStyle)
+	private var spotlightRows: HomeSpotlightRows? = null
+	private val _spotlightEnabled = MutableStateFlow(false)
+	private val _spotlightSelection = MutableStateFlow<HomeSpotlightSelection?>(null)
+	val spotlightEnabled get() = _spotlightEnabled.asStateFlow()
+	val spotlightSelection get() = _spotlightSelection.asStateFlow()
+
 	fun setOverlayHeaderHeight(height: Int) {
 		overlayHeaderHeight = height
-		headerInset?.apply(height)
+		if (spotlightRows == null) headerInset?.apply(height)
 	}
 
 	override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
 		super.onViewCreated(view, savedInstanceState)
 		headerInset = HomeHeaderInset(requireNotNull(verticalGridView)).also { it.apply(overlayHeaderHeight) }
+		applyRowStyle(discoveryPreferences.read().spotlight)
 	}
 
 	override fun onDestroyView() {
+		spotlightRows?.detach()
+		spotlightRows = null
 		headerInset = null
 		super.onDestroyView()
+	}
+
+	/** Switches the grid between the standard leanback alignment and the bottom-anchored Spotlight style. */
+	private fun applyRowStyle(spotlight: Boolean) {
+		_spotlightEnabled.value = spotlight
+		if (!spotlight) _spotlightSelection.value = null
+		val grid = verticalGridView ?: return
+		if (spotlight) {
+			if (spotlightRows == null) spotlightRows = HomeSpotlightRows(grid).also { it.attach() }
+		} else if (spotlightRows != null) {
+			spotlightRows?.detach()
+			spotlightRows = null
+			headerInset?.reapply()
+		}
 	}
 
 	override fun onCreate(savedInstanceState: Bundle?) {
@@ -215,6 +241,7 @@ class HomeRowsFragment : RowsSupportFragment(), AudioEventListener, View.OnKeyLi
 
             // Add sections to layout
 			withContext(Dispatchers.Main) {
+				applyRowStyle(layout.spotlight)
 				val cardPresenter = CardPresenter()
                 val discoveryPresenter = CardPresenter().apply { discoveryScale = layout.scale }
                 rowVisibility?.close()
@@ -376,11 +403,13 @@ override fun onKey(v: View?, keyCode: Int, event: KeyEvent?): Boolean {
 		) {
 			if (item !is BaseRowItem) {
 				currentItem = null
+				_spotlightSelection.value = null
 				//fill in default background
 				backgroundService.clearBackgrounds()
 			} else {
 				currentItem = item
 				currentRow = row as ListRow
+				_spotlightSelection.value = if (_spotlightEnabled.value) item.baseItem?.let { HomeSpotlightSelection(row.headerItem?.name, it) } else null
 
 				val itemRowAdapter = row.adapter as? ItemRowAdapter
 				itemRowAdapter?.loadMoreItemsIfNeeded(itemRowAdapter.indexOf(item))

@@ -122,7 +122,12 @@ fun SettingsDiscoveryScreen() {
                 val sizes = listOf("small", "medium", "large")
                 draft = draft.copy(size = sizes[(sizes.indexOf(draft.size) + 1) % sizes.size])
             }, enabled = move == null) { Text("Posters: " + draft.size.replaceFirstChar { it.uppercase() }) }
+            Button(onClick = { draft = draft.nextRowStyle() }, enabled = move == null) { Text("Layout: " + draft.rowStyleTitle) }
         }
+        if (draft.spotlight) Text(
+            "Spotlight keeps the selected row on the bottom edge and shows the highlighted title, its details and artwork above it. The next row's name peeks in from below.",
+            fontSize = 13.sp,
+        )
         Box(Modifier.weight(1f).fillMaxWidth().focusRequester(pickupFocus).focusable(move != null)) {
             LazyColumn(state = listState, verticalArrangement = Arrangement.spacedBy(8.dp)) {
                 items(order, key = { it }) { id ->

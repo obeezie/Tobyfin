@@ -21,6 +21,7 @@ The phone app bundles a built copy of `web/` in `android/app/src/main/assets/web
 - Sleep timer
 - Live subtitle timing adjustment
 - "Who's watching?" profile picker on Android TV
+- Spotlight layout on Android TV: a per-profile Home layout that anchors the selected row to the bottom edge and shows the highlighted title above it
 
 ## Building
 

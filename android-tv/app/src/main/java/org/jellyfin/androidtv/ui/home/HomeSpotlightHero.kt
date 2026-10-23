@@ -1,6 +1,16 @@
 package org.jellyfin.androidtv.ui.home
 
 import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.Crossfade
+import androidx.compose.foundation.layout.fillMaxHeight
+import androidx.compose.ui.layout.ContentScale
+import coil3.ImageLoader
+import coil3.compose.AsyncImage
+import org.jellyfin.androidtv.util.apiclient.getUrl
+import org.jellyfin.androidtv.util.apiclient.itemBackdropImages
+import org.jellyfin.androidtv.util.apiclient.parentBackdropImages
+import org.jellyfin.sdk.api.client.ApiClient
+import org.koin.compose.koinInject
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.foundation.background
@@ -31,18 +41,43 @@ import org.jellyfin.sdk.model.api.BaseItemKind
 /** The highlighted card on Home: the row it belongs to and the item itself. */
 data class HomeSpotlightSelection(val rowTitle: String?, val item: BaseItemDto)
 
-/** Darkens the left side of the backdrop so the Spotlight copy stays legible; drawn behind the rows. */
+private val SpotlightBackground = Color(0xFF080C1D)
+
+/**
+ * The highlighted item's backdrop for Spotlight, drawn behind the rows: sharp and unblurred in the top-right of the
+ * screen, fading into the dark area on the left where the title and overview sit, and into the rows below. Keeps the
+ * last backdrop while nothing is highlighted, and crossfades between items.
+ */
 @Composable
-fun HomeSpotlightScrim() {
-	Box(
-		Modifier.fillMaxSize().background(
-			Brush.horizontalGradient(
-				0f to Color(0xE60B0D10),
-				0.4f to Color(0xB30B0D10),
-				0.75f to Color.Transparent,
-			)
-		)
-	)
+fun HomeSpotlightBackdrop(selection: HomeSpotlightSelection?) {
+	val api = koinInject<ApiClient>()
+	val imageLoader = koinInject<ImageLoader>()
+	val last = remember { arrayOfNulls<String>(1) }
+	val url = selection?.item?.let { item ->
+		(item.itemBackdropImages + item.parentBackdropImages).firstOrNull()?.getUrl(api, maxWidth = 1920)
+	}
+	if (selection != null) last[0] = url
+
+	Box(Modifier.fillMaxSize().background(SpotlightBackground)) {
+		Crossfade(targetState = last[0], label = "spotlight backdrop") { shown ->
+			Box(Modifier.fillMaxSize()) {
+				if (shown != null) {
+					val frame = Modifier.align(Alignment.TopEnd).fillMaxWidth(0.68f).fillMaxHeight(0.8f)
+					AsyncImage(
+						model = shown,
+						imageLoader = imageLoader,
+						contentDescription = null,
+						contentScale = ContentScale.Crop,
+						alignment = Alignment.TopCenter,
+						modifier = frame,
+					)
+					// Fade the image's left edge into the text area, and its bottom edge into the rows.
+					Box(frame.background(Brush.horizontalGradient(0f to SpotlightBackground, 0.4f to Color.Transparent)))
+					Box(frame.background(Brush.verticalGradient(0.55f to Color.Transparent, 1f to SpotlightBackground)))
+				}
+			}
+		}
+	}
 }
 
 /**

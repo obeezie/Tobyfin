@@ -63,7 +63,10 @@ class HomeFragment : Fragment() {
 			// we do switch the focus, we reset the leanback state so it won't cause weird behavior when focus is regained
 			var rowsSupportFragment by remember { mutableStateOf<HomeRowsFragment?>(null) }
 			val spotlight = rowsSupportFragment?.spotlightEnabled?.collectAsState()?.value == true
-			if (spotlight) HomeSpotlightScrim()
+			if (spotlight) rowsSupportFragment?.let { fragment ->
+				val selection by fragment.spotlightSelection.collectAsState()
+				HomeSpotlightBackdrop(selection)
+			}
 			AndroidFragment<HomeRowsFragment>(
 				modifier = Modifier
 					.focusGroup()

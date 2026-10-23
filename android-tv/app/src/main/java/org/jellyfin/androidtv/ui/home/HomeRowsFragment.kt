@@ -409,7 +409,9 @@ override fun onKey(v: View?, keyCode: Int, event: KeyEvent?): Boolean {
 				itemRowAdapter?.loadMoreItemsIfNeeded(itemRowAdapter.indexOf(item))
 				rowPositions.record(row, itemRowAdapter?.indexOf(item) ?: -1)
 
-				backgroundService.setBackground(item.baseItem)
+				// Spotlight draws its own sharp backdrop; the app-wide blurred one would only sit behind it.
+				if (_spotlightEnabled.value) backgroundService.clearBackgrounds()
+				else backgroundService.setBackground(item.baseItem)
 			}
 		}
 	}

@@ -294,22 +294,39 @@ class QueueManager(
         return true
     }
 
+    /** The id of the item after the current one, or null at the end of the queue. */
+    fun peekNextId(): UUID? = if (hasNext()) currentQueue[currentQueueIndex + 1] else null
+
+    /**
+     * Start the next item in the queue.
+     *
+     * @return true only if the next item was loaded. On failure the queue stays on the current item,
+     * so the caller can close the player instead of leaving it on a black screen.
+     */
     suspend fun next(): Boolean {
         if (!hasNext()) return false
 
         resetPlaybackFallback()
 
-        when (val currentMediaSource = getCurrentMediaSourceOrNull()) {
+        val currentMediaSource = getCurrentMediaSourceOrNull() ?: return false
+        val previousIndex = currentQueueIndex
+        // Move first: loading the item notifies observers that read hasNext()/hasPrevious().
+        currentQueueIndex++
+        val error = when (currentMediaSource) {
             is LocalJellyfinMediaSource -> startDownloadPlayback(
-                itemId = currentQueue[++currentQueueIndex],
+                itemId = currentQueue[currentQueueIndex],
                 playWhenReady = true,
             )
             is RemoteJellyfinMediaSource -> startRemotePlayback(
-                itemId = currentQueue[++currentQueueIndex],
+                itemId = currentQueue[currentQueueIndex],
                 mediaSourceId = null,
                 maxStreamingBitrate = currentMediaSource.maxStreamingBitrate,
             )
-            null -> return false
+        }
+        if (error != null) {
+            Timber.e(error, "Failed to start the next queue item")
+            currentQueueIndex = previousIndex
+            return false
         }
         return true
     }

@@ -53,6 +53,8 @@ import org.jellyfin.mobile.player.ui.DecoderType
 import org.jellyfin.mobile.player.ui.DisplayPreferences
 import org.jellyfin.mobile.player.ui.PlayState
 import org.jellyfin.mobile.player.ui.playermenuhelper.PlayerMenuHelper
+import org.jellyfin.mobile.player.upnext.UpNextPrompt
+import org.jellyfin.mobile.player.upnext.UpNextRules
 import org.jellyfin.mobile.utils.Constants
 import org.jellyfin.mobile.utils.Constants.SUPPORTED_VIDEO_PLAYER_PLAYBACK_ACTIONS
 import org.jellyfin.mobile.utils.applyDefaultAudioAttributes
@@ -73,12 +75,16 @@ import org.jellyfin.sdk.api.client.extensions.displayPreferencesApi
 import org.jellyfin.sdk.api.client.extensions.hlsSegmentApi
 import org.jellyfin.sdk.api.client.extensions.playStateApi
 import org.jellyfin.sdk.api.client.extensions.userApi
+import org.jellyfin.sdk.api.client.extensions.userLibraryApi
 import org.jellyfin.sdk.api.operations.DisplayPreferencesApi
 import org.jellyfin.sdk.api.operations.HlsSegmentApi
 import org.jellyfin.sdk.api.operations.PlayStateApi
 import org.jellyfin.sdk.api.operations.UserApi
+import org.jellyfin.sdk.model.api.BaseItemDto
+import org.jellyfin.sdk.model.api.BaseItemKind
 import org.jellyfin.sdk.model.api.ChapterInfo
 import org.jellyfin.sdk.model.api.MediaSegmentDto
+import org.jellyfin.sdk.model.api.MediaSegmentType
 import org.jellyfin.sdk.model.api.PlayMethod
 import org.jellyfin.sdk.model.api.PlaybackOrder
 import org.jellyfin.sdk.model.api.PlaybackProgressInfo
@@ -92,6 +98,7 @@ import org.koin.core.component.get
 import org.koin.core.component.inject
 import org.koin.core.qualifier.named
 import timber.log.Timber
+import java.util.UUID
 import java.util.concurrent.atomic.AtomicBoolean
 import kotlin.time.Duration
 import kotlin.time.Duration.Companion.milliseconds
@@ -138,6 +145,18 @@ class PlayerViewModel(application: Application) : AndroidViewModel(application),
     private val _error = MutableLiveData<String>()
     val error: LiveData<String> = _error
 
+    // Up next card
+    private val _upNext = MutableLiveData<UpNextPrompt?>()
+    val upNext: LiveData<UpNextPrompt?> get() = _upNext
+    private val _loadingNext = MutableLiveData(false)
+
+    /** True while the next episode is being loaded, so the player shows its loading indicator. */
+    val loadingNext: LiveData<Boolean> get() = _loadingNext
+    private var upNextDismissed = false
+    private var creditsStart: Duration? = null
+    private var upNextItem: BaseItemDto? = null
+    private var upNextRequestedFor: UUID? = null
+
     private val eventLogger = EventLogger()
     private var analyticsCollector = buildAnalyticsCollector()
     private val initialTracksSelected = AtomicBoolean(false)
@@ -147,6 +166,7 @@ class PlayerViewModel(application: Application) : AndroidViewModel(application),
     private var progressUpdateJob: Job? = null
     private var chapterMarkingUpdateJob: Job? = null
     private var skipMediaSegmentUpdateJob: Job? = null
+    private var upNextUpdateJob: Job? = null
     private var fallbackRetryJob: Job? = null
 
     /**
@@ -299,6 +319,9 @@ class PlayerViewModel(application: Application) : AndroidViewModel(application),
      * Release the current ExoPlayer and stop/release the current MediaSession
      */
     private fun releasePlayer() {
+        stopUpNextUpdates()
+        _upNext.value = null
+        _loadingNext.value = false
         notificationHelper.dismissNotification()
         mediaSession.isActive = false
         mediaSession.release()
@@ -316,6 +339,7 @@ class PlayerViewModel(application: Application) : AndroidViewModel(application),
         player.prepare()
 
         initialTracksSelected.set(false)
+        resetUpNext()
 
         val startTime = jellyfinMediaSource.startTime
         if (startTime > Duration.ZERO) player.seekTo(startTime.inWholeMilliseconds)
@@ -371,6 +395,135 @@ class PlayerViewModel(application: Application) : AndroidViewModel(application),
 
     private fun stopSkipMediaSegmentUpdates() {
         skipMediaSegmentUpdateJob?.cancel()
+    }
+
+    private fun startUpNextUpdates() {
+        upNextUpdateJob?.cancel()
+        upNextUpdateJob = viewModelScope.launch {
+            while (true) {
+                updateUpNext()
+                delay(Constants.UP_NEXT_UPDATE_DELAY)
+            }
+        }
+    }
+
+    private fun stopUpNextUpdates() {
+        upNextUpdateJob?.cancel()
+    }
+
+    private fun resetUpNext() {
+        upNextDismissed = false
+        creditsStart = null
+        upNextRequestedFor = null
+        setUpNext(null)
+    }
+
+    private fun setUpNext(prompt: UpNextPrompt?) {
+        if (_upNext.value != prompt) _upNext.value = prompt
+    }
+
+    /** No card when the sleep timer is about to stop playback at the end of this video, or already has. */
+    private fun sleepTimerStopsHere(): Boolean = sleepTimer.state.afterItem || sleepTimer.blocked
+
+    /** The card's timing for the current episode, or null when there should be no card. */
+    private fun upNextTiming(player: Player): UpNextRules.Timing? {
+        val source = mediaSourceOrNull ?: return null
+        if (source.item?.type != BaseItemKind.EPISODE || !queueManager.hasNext() || sleepTimerStopsHere()) return null
+        val runTime = source.runTime.takeIf { it > Duration.ZERO }
+            ?: player.duration.takeIf { it > 0 }?.milliseconds
+            ?: return null
+        return UpNextRules.timing(runTime, creditsStart)
+    }
+
+    /** Show, update or hide the card for the current position, and start the next episode when the countdown ends. */
+    private fun updateUpNext() {
+        val player = playerOrNull ?: return
+        if (_loadingNext.value == true || player.playbackState == Player.STATE_ENDED) return
+        val timing = upNextTiming(player)
+        val position = player.currentPosition.milliseconds
+        if (timing == null || upNextDismissed || position < timing.showAt) {
+            setUpNext(null)
+            return
+        }
+        val nextId = queueManager.peekNextId() ?: return setUpNext(null)
+        val next = upNextItem?.takeIf { it.id == nextId }
+        if (next == null) {
+            loadUpNextItem(nextId)
+            return
+        }
+        if (next.type != BaseItemKind.EPISODE) return setUpNext(null)
+        if (!autoPlayNextEpisodeEnabled) return setUpNext(UpNextPrompt(next, secondsLeft = null, atEnd = false))
+        if (timing.skipsCredits && position >= timing.advanceAt && player.playWhenReady) {
+            playUpNext()
+            return
+        }
+        setUpNext(UpNextPrompt(next, UpNextRules.secondsLeft(position, timing.advanceAt), atEnd = false))
+    }
+
+    private fun loadUpNextItem(itemId: UUID) {
+        if (upNextRequestedFor == itemId) return
+        upNextRequestedFor = itemId
+        viewModelScope.launch {
+            fetchUpNextItem(itemId)
+            updateUpNext()
+        }
+    }
+
+    private suspend fun fetchUpNextItem(itemId: UUID): BaseItemDto? {
+        upNextItem?.takeIf { it.id == itemId }?.let { return it }
+        val item = try {
+            withContext(Dispatchers.IO) {
+                apiClient.userLibraryApi.getItem(itemId).content
+            }
+        } catch (e: ApiClientException) {
+            Timber.e(e, "Failed to load the next episode")
+            null
+        }
+        if (item != null) upNextItem = item
+        return item
+    }
+
+    /**
+     * Once an episode ends with autoplay off, keep the player open on the card so the viewer can start the
+     * next episode. Returns false when there is nothing to offer and the player should close.
+     */
+    private suspend fun showUpNextAtEnd(): Boolean {
+        if (mediaSourceOrNull?.item?.type != BaseItemKind.EPISODE) return false
+        val nextId = queueManager.peekNextId() ?: return false
+        val next = fetchUpNextItem(nextId) ?: return false
+        if (next.type != BaseItemKind.EPISODE) return false
+        setUpNext(UpNextPrompt(next, secondsLeft = null, atEnd = true))
+        return true
+    }
+
+    /** Start the next episode now, from the card or when its countdown ends. */
+    fun playUpNext() {
+        val player = playerOrNull ?: return
+        if (_loadingNext.value == true || !queueManager.hasNext()) return
+        val ended = player.playbackState == Player.STATE_ENDED
+        // An ended episode was already reported; one cut short at the credits counts as watched.
+        if (!ended) reportPlaybackStop(markPlayed = true)
+        advanceToNext(closeOnFailure = ended)
+    }
+
+    /** Hide the card for this episode. Once the episode has ended there is nothing left to show, so close. */
+    fun dismissUpNext() {
+        upNextDismissed = true
+        if (_upNext.value?.atEnd == true) releasePlayer() else setUpNext(null)
+    }
+
+    private fun advanceToNext(closeOnFailure: Boolean) {
+        stopUpNextUpdates()
+        setUpNext(null)
+        _loadingNext.value = true
+        viewModelScope.launch {
+            val started = queueManager.next()
+            _loadingNext.value = false
+            if (!started) {
+                _error.value = getApplication<Application>().getString(R.string.player_error_next_episode)
+                if (closeOnFailure) releasePlayer()
+            }
+        }
     }
 
     /**
@@ -437,7 +590,8 @@ class PlayerViewModel(application: Application) : AndroidViewModel(application),
 
         val playbackPosition = currentPosition.milliseconds
         val currentMediaSegment = mediaSegments.find { seg -> playbackPosition in seg.start..seg.end }
-        if (currentMediaSegment != null) {
+        // The up next card takes the Skip button's place; its Play button skips the credits anyway
+        if (currentMediaSegment != null && _upNext.value == null) {
             playerMenuHelper?.skipMediaSegmentButton?.showSkipSegmentButton(currentMediaSegment)
         } else {
             playerMenuHelper?.skipMediaSegmentButton?.hideSkipSegmentButton()
@@ -478,7 +632,7 @@ class PlayerViewModel(application: Application) : AndroidViewModel(application),
         }
     }
 
-    private fun reportPlaybackStop() {
+    private fun reportPlaybackStop(markPlayed: Boolean = false) {
         val mediaSource = mediaSourceOrNull as? RemoteJellyfinMediaSource ?: return
         val player = playerOrNull ?: return
         val hasFinished = player.playbackState == Player.STATE_ENDED
@@ -504,7 +658,7 @@ class PlayerViewModel(application: Application) : AndroidViewModel(application),
                 }
 
                 // Mark video as watched if playback finished
-                if (hasFinished) {
+                if (hasFinished || markPlayed) {
                     withContext(Dispatchers.IO) {
                         playStateApi.markPlayedItem(itemId = mediaSource.itemId)
                     }
@@ -536,6 +690,12 @@ class PlayerViewModel(application: Application) : AndroidViewModel(application),
             if (jellyfinMediaSource.item != null) {
                 val mediaSegments = mediaSegmentRepository.getSegmentsForItem(jellyfinMediaSource.item)
                 val newAskToSkipMediaSegments = mutableListOf<MediaSegmentDto>()
+                // Ignore a late response for an item that is no longer playing
+                if (mediaSourceOrNull === jellyfinMediaSource) {
+                    creditsStart = mediaSegments
+                        .filter { segment -> segment.type == MediaSegmentType.OUTRO }
+                        .minOfOrNull { segment -> segment.start }
+                }
 
                 for (mediaSegment in mediaSegments) {
                     val action = mediaSegmentRepository.getMediaSegmentAction(mediaSegment)
@@ -746,10 +906,14 @@ class PlayerViewModel(application: Application) : AndroidViewModel(application),
             if (askToSkipMediaSegments.isNotEmpty()) {
                 startSkipMediaSegmentUpdates()
             }
+            if (mediaSourceOrNull?.item?.type == BaseItemKind.EPISODE && queueManager.hasNext()) {
+                startUpNextUpdates()
+            }
         } else {
             stopProgressUpdates()
             stopChapterMarkingUpdates()
             stopSkipMediaSegmentUpdates()
+            stopUpNextUpdates()
         }
 
         // Update media session
@@ -770,8 +934,10 @@ class PlayerViewModel(application: Application) : AndroidViewModel(application),
                 }
                 Player.STATE_ENDED -> {
                     reportPlaybackStop()
-                    if (sleepTimer.finishItem() || !autoPlayNextEpisodeEnabled || !queueManager.next()) {
-                        releasePlayer()
+                    when {
+                        sleepTimer.finishItem() || !queueManager.hasNext() -> releasePlayer()
+                        autoPlayNextEpisodeEnabled -> advanceToNext(closeOnFailure = true)
+                        !showUpNextAtEnd() -> releasePlayer()
                     }
                 }
             }
@@ -786,6 +952,7 @@ class PlayerViewModel(application: Application) : AndroidViewModel(application),
         super.onPositionDiscontinuity(oldPosition, newPosition, reason)
         playerOrNull?.setWatchedChapterMarkings()
         playerOrNull?.updateSkipMediaSegmentButton()
+        updateUpNext()
     }
 
     override fun onPlayerError(error: PlaybackException) {

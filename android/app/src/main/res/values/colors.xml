@@ -32,5 +32,6 @@
 
     <!-- Skip Media Segment Button -->
     <color name="skip_media_segment_background">#202124</color>
+    <color name="up_next_background">#EB121A35</color>
     <color name="skip_media_segment_text">#DDDDDD</color>
 </resources>

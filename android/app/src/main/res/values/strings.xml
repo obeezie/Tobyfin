@@ -82,6 +82,14 @@
     <string name="menu_item_hardware_decoding">Hardware Decoding</string>
     <string name="menu_item_software_decoding">Software Decoding</string>
     <string name="skip_media_segment">Skip</string>
+    <string name="player_error_next_episode">Couldn\'t start the next episode</string>
+    <string name="up_next_title">Up next</string>
+    <string name="up_next_countdown">Up next in %d</string>
+    <string name="up_next_episode_label">S%1$d:E%2$d · %3$s</string>
+    <string name="up_next_episode_label_no_season">E%1$d · %2$s</string>
+    <string name="up_next_play">Play next episode</string>
+    <string name="up_next_dismiss">Hide up next</string>
+    <string name="up_next_close">Close player</string>
 
     <string name="external_player_invalid_play_method">Invalid play method.</string>
     <string name="external_player_not_supported_yet">Playback tracking not supported in selected external player yet. Contact developers to try to add support for it.</string>

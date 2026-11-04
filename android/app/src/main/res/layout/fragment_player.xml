@@ -159,5 +159,94 @@
             android:textColor="@color/skip_media_segment_text"
             android:textSize="18sp"
             tools:visibility="visible"/>
+
+        <LinearLayout
+            android:id="@+id/up_next_card"
+            android:layout_width="@dimen/up_next_card_width"
+            android:layout_height="wrap_content"
+            android:layout_gravity="end|bottom"
+            android:layout_marginStart="@dimen/exo_player_controls_display_padding"
+            android:layout_marginEnd="@dimen/exo_player_controls_display_padding"
+            android:layout_marginBottom="96dp"
+            android:background="@drawable/up_next_background"
+            android:clickable="true"
+            android:focusable="false"
+            android:orientation="vertical"
+            android:padding="12dp"
+            android:visibility="gone"
+            tools:ignore="KeyboardInaccessibleWidget"
+            tools:visibility="visible">
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal">
+
+                <androidx.appcompat.widget.AppCompatImageView
+                    android:id="@+id/up_next_image"
+                    android:layout_width="112dp"
+                    android:layout_height="63dp"
+                    android:background="@drawable/up_next_image_background"
+                    android:importantForAccessibility="no"
+                    android:scaleType="centerCrop" />
+
+                <LinearLayout
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="12dp"
+                    android:layout_weight="1"
+                    android:orientation="vertical">
+
+                    <androidx.appcompat.widget.AppCompatTextView
+                        android:id="@+id/up_next_heading"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:textColor="@color/tobyfin_cyan"
+                        android:textSize="13sp"
+                        android:textStyle="bold"
+                        tools:text="Up next in 8" />
+
+                    <androidx.appcompat.widget.AppCompatTextView
+                        android:id="@+id/up_next_episode"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="2dp"
+                        android:ellipsize="end"
+                        android:maxLines="2"
+                        android:textColor="@color/tobyfin_text"
+                        android:textSize="15sp"
+                        android:textStyle="bold"
+                        tools:text="S1:E5 · The One Where Everything Happens" />
+                </LinearLayout>
+
+                <androidx.appcompat.widget.AppCompatImageButton
+                    android:id="@+id/up_next_dismiss"
+                    android:layout_width="40dp"
+                    android:layout_height="40dp"
+                    android:layout_marginStart="4dp"
+                    android:layout_marginTop="-8dp"
+                    android:layout_marginEnd="-8dp"
+                    android:background="?attr/selectableItemBackgroundBorderless"
+                    android:contentDescription="@string/up_next_dismiss"
+                    android:src="@drawable/ic_up_next_close" />
+            </LinearLayout>
+
+            <Button
+                android:id="@+id/up_next_play"
+                android:layout_width="match_parent"
+                android:layout_height="44dp"
+                android:layout_marginTop="10dp"
+                android:background="@drawable/up_next_play_background"
+                android:drawableStart="@drawable/ic_up_next_play"
+                android:drawablePadding="8dp"
+                android:gravity="center"
+                android:paddingStart="16dp"
+                android:paddingEnd="16dp"
+                android:text="@string/up_next_play"
+                android:textAllCaps="false"
+                android:textColor="@android:color/white"
+                android:textSize="15sp"
+                android:textStyle="bold" />
+        </LinearLayout>
     </FrameLayout>
 </FrameLayout>

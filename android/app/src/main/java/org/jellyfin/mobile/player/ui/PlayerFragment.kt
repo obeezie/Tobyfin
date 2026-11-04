@@ -77,6 +77,7 @@ class PlayerFragment : Fragment(), BackPressInterceptor {
     private var playerMenus: PlayerMenus? = null
     private var sleepOverlay: org.jellyfin.mobile.player.sleep.SleepTimerDialog? = null
     private var timingOverlay: android.app.Dialog? = null
+    private var upNextCard: UpNextCard? = null
 
     private lateinit var playerFullscreenHelper: PlayerFullscreenHelper
     lateinit var playerLockScreenHelper: PlayerLockScreenHelper
@@ -112,7 +113,10 @@ class PlayerFragment : Fragment(), BackPressInterceptor {
         viewModel.playerState.observe(this) { playerState ->
             val isPlaying = viewModel.playerOrNull?.isPlaying == true
             requireActivity().window.keepScreenOn = isPlaying
-            loadingIndicator.isVisible = playerState == Player.STATE_BUFFERING
+            loadingIndicator.isVisible = playerState == Player.STATE_BUFFERING || viewModel.loadingNext.value == true
+        }
+        viewModel.loadingNext.observe(this) { loadingNext ->
+            loadingIndicator.isVisible = loadingNext || viewModel.playerState.value == Player.STATE_BUFFERING
         }
         viewModel.decoderType.observe(this) { type ->
             playerMenus?.updatedSelectedDecoder(type)
@@ -243,7 +247,21 @@ class PlayerFragment : Fragment(), BackPressInterceptor {
         fullscreenSwitcher.setOnClickListener {
             toggleFullscreen()
         }
+
+        // Up next card near the end of an episode
+        upNextCard = UpNextCard(
+            binding = playerBinding,
+            onPlay = viewModel::playUpNext,
+            onDismiss = viewModel::dismissUpNext,
+        )
+        viewModel.upNext.observe(viewLifecycleOwner) { prompt ->
+            if (prompt != null) playerBinding.skipSegmentButton.isVisible = false
+            upNextCard?.show(prompt, isInPictureInPicture())
+        }
     }
+
+    private fun isInPictureInPicture(): Boolean =
+        AndroidVersion.isAtLeastN && activity?.isInPictureInPictureMode == true
 
     override fun onStart() {
         super.onStart()
@@ -480,6 +498,7 @@ class PlayerFragment : Fragment(), BackPressInterceptor {
             playerMenus?.dismissPlaybackInfo()
             playerLockScreenHelper.hideUnlockButton()
         }
+        upNextCard?.show(viewModel.upNext.value, isInPictureInPictureMode)
     }
 
     override fun onConfigurationChanged(newConfig: Configuration) {
@@ -502,6 +521,8 @@ class PlayerFragment : Fragment(), BackPressInterceptor {
         sleepOverlay = null
         timingOverlay?.dismiss()
         timingOverlay = null
+        upNextCard?.release()
+        upNextCard = null
         super.onDestroyView()
         // Detach player from PlayerView
         playerView.player = null
